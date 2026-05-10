@@ -76,16 +76,11 @@ function renderChart(labels, generatedData, servedData) {
 
 // ─── Staff Management ──────────────────────────────────
 
-const COUNTER_NAMES = {
-    '1': 'Counter 1 — CNIC Renewal', '2': 'Counter 2 — Passport',
-    '3': 'Counter 3 — FRC Document', '4': 'Counter 4 — Domicile', '5': 'Counter 5 — Birth Certificate'
-};
-
 function parseRole(role) {
     if (role === 'ReceptionStaff') return { label: 'Reception', assignment: 'Reception Desk', type: 'reception' };
     if (role && role.startsWith('CounterStaff')) {
         const id = role.replace('CounterStaff', '');
-        return { label: 'Counter Staff', assignment: COUNTER_NAMES[id] || `Counter ${id}`, type: 'counter', counterId: id };
+        return { label: 'Counter Staff', assignment: `Counter ${id}`, type: 'counter', counterId: id };
     }
     return { label: role, assignment: '-', type: 'unknown' };
 }
@@ -173,6 +168,18 @@ async function createStaff(event) {
 
     let role = roleBase;
     if (roleBase === 'CounterStaff') role = 'CounterStaff' + document.getElementById('staff-counter').value;
+
+    if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email.toLowerCase())) {
+        errorDiv.textContent = 'Only @gmail.com email addresses are allowed.';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    if (phoneNumber.replace(/\D/g, '').length !== 11) {
+        errorDiv.textContent = 'Phone number must be exactly 11 digits.';
+        errorDiv.style.display = 'block';
+        return;
+    }
 
     if (password.length < 4) {
         errorDiv.textContent = 'Password must be at least 4 characters.';
@@ -317,6 +324,16 @@ async function saveStaffEdit(event) {
     const roleBase = document.getElementById('edit-role').value;
     let role = roleBase;
     if (roleBase === 'CounterStaff') role = 'CounterStaff' + document.getElementById('edit-counter').value;
+
+    if (email && !/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email.toLowerCase())) {
+        alert('Only @gmail.com email addresses are allowed.');
+        return;
+    }
+
+    if (phoneNumber && phoneNumber.replace(/\D/g, '').length !== 11) {
+        alert('Phone number must be exactly 11 digits.');
+        return;
+    }
 
     const payload = { fullName, role, phoneNumber, email, active };
     if (password) payload.password = password;

@@ -7,6 +7,43 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles-v2.css">
+    <style>
+        /* Priority Cards Refinement */
+        .priority-cards { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 1rem; 
+            max-width: 600px; 
+            margin: 0 auto;
+        }
+        .priority-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .priority-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        .priority-card.emergency:hover { border-color: #F87171; }
+        .priority-card.golden:hover { border-color: #FBBF24; }
+        
+        .card-icon { font-size: 2.2rem; }
+        .card-title { font-size: 1.15rem; font-weight: 700; color: #F8FAFC; }
+        .card-desc { font-size: 0.8rem; color: #94A3B8; }
+
+        .btn-back { background: none; border: none; color: #94A3B8; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; transition: color 0.2s; }
+        .btn-back:hover { color: #F8FAFC; }
+    </style>
 </head>
 <body class="dashboard-body">
 
@@ -121,25 +158,32 @@
             </div>
 
             <div id="step-2-priority" class="hidden">
-                <button class="btn-back" onclick="goBackToServices()"><i class="fas fa-arrow-left"></i> Back to Services</button>
-                <h2 style="margin-top: 1rem; color: #fff;">Selected Service: <span id="selectedServiceText" style="color: #C8A85C;"></span></h2>
-                
-                <h3 style="margin-top: 2rem; color: #94A3B8;">Select Priority Level:</h3>
-                <div class="priority-grid">
+                <button class="btn-back" onclick="goBackToServices()" style="margin-bottom: 1.5rem;">
+                    <i class="fas fa-arrow-left"></i> Back to Services
+                </button>
+                <h2 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem;">Selected Service: <span id="selectedServiceText" style="color: var(--accent-orange);"></span></h2>
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">Select your preferred priority level below:</p>
+
+                <div class="priority-cards">
+                    <!-- Auto Assign Card -->
                     <div class="priority-card" onclick="selectPriority('Auto')">
-                        <i class="fas fa-robot"></i>
-                        <h3>Auto-Assign</h3>
-                        <p>Normal or Senior (based on age)</p>
+                        <div class="card-icon" style="color: #60A5FA;"><i class="fas fa-robot"></i></div>
+                        <div class="card-title">Auto-Assign</div>
+                        <div class="card-desc">Normal or Senior (based on age)</div>
                     </div>
+
+                    <!-- Emergency Card -->
                     <div class="priority-card emergency" onclick="selectPriority('Emergency')">
-                        <i class="fas fa-ambulance"></i>
-                        <h3>Emergency</h3>
-                        <p>Requires verification</p>
+                        <div class="card-icon" style="color: #F87171;"><i class="fas fa-ambulance"></i></div>
+                        <div class="card-title">Emergency</div>
+                        <div class="card-desc">Requires verification</div>
                     </div>
+
+                    <!-- Golden Ticket Card -->
                     <div class="priority-card golden" onclick="selectPriority('Golden')">
-                        <i class="fas fa-star"></i>
-                        <h3>Golden Ticket</h3>
-                        <p>Rs. 500 (Highest Priority)</p>
+                        <div class="card-icon" style="color: #FBBF24;"><i class="fas fa-star"></i></div>
+                        <div class="card-title">Golden Ticket</div>
+                        <div class="card-desc">Rs. 500 (Highest Priority)</div>
                     </div>
                 </div>
             </div>

@@ -28,7 +28,14 @@ public class TokenService {
     @Autowired private EmailService emailService;
 
     public Token generateNewTokenByName(String cnic, String serviceName, String priorityRequest, String emergencyDescription) {
-        Citizen citizen = citizenRepo.findByCnic(cnic).orElseThrow(() -> new RuntimeException("Citizen not found!"));
+        Citizen citizen = citizenRepo.findByCnic(cnic).orElseGet(() -> {
+            Citizen c = new Citizen();
+            c.setCnic(cnic);
+            c.setFullName("Guest Citizen");
+            c.setPhoneNumber("N/A");
+            c.setDateOfBirth("1990-01-01"); // Default date
+            return citizenRepo.save(c);
+        });
         
         com.example.waitwise.models.Service service = serviceRepo.findByServiceName(serviceName)
             .orElseGet(() -> {
@@ -38,13 +45,20 @@ public class TokenService {
                 return serviceRepo.save(s);
             });
 
-        return createToken(citizen, service, priorityRequest, emergencyDescription);
+        return createToken(citizen, service, priorityRequest, emergencyDescription, false);
     }
 
-    public Token generateNewToken(String cnic, int serviceId, String priorityRequest, String emergencyDescription) {
-        Citizen citizen = citizenRepo.findByCnic(cnic).orElseThrow(() -> new RuntimeException("Citizen not found!"));
+    public Token generateNewToken(String cnic, int serviceId, String priorityRequest, String emergencyDescription, boolean isStaff) {
+        Citizen citizen = citizenRepo.findByCnic(cnic).orElseGet(() -> {
+            Citizen c = new Citizen();
+            c.setCnic(cnic);
+            c.setFullName("Guest Citizen");
+            c.setPhoneNumber("N/A");
+            c.setDateOfBirth("1990-01-01"); // Default date
+            return citizenRepo.save(c);
+        });
         com.example.waitwise.models.Service service = serviceRepo.findById(serviceId).orElseThrow(() -> new RuntimeException("Service not found!"));
-        return createToken(citizen, service, priorityRequest, emergencyDescription);
+        return createToken(citizen, service, priorityRequest, emergencyDescription, isStaff);
     }
 
     public Token generateWalkInToken(int serviceId, String priorityRequest) {
@@ -56,7 +70,7 @@ public class TokenService {
             return citizenRepo.save(c);
         });
         com.example.waitwise.models.Service service = serviceRepo.findById(serviceId).orElseThrow(() -> new RuntimeException("Service not found!"));
-        return createToken(walkIn, service, priorityRequest, "");
+        return createToken(walkIn, service, priorityRequest, "", true);
     }
 
     // --- Token Cancellation ---
@@ -108,7 +122,7 @@ public class TokenService {
 
     public Token callNextToken(int serviceId) {
         List<Token> waitingTokens = tokenRepo.findAll().stream()
-                .filter(t -> "Waiting".equals(t.getStatus()) && t.getService().getServiceId() == serviceId)
+                .filter(t -> "Waiting".equals(t.getStatus()) && (serviceId == -1 || t.getService().getServiceId() == serviceId))
                 .sorted(Comparator.comparing(Token::getPriorityValue)
                         .thenComparing(Token::getIssueTime))
                 .collect(Collectors.toList());
@@ -231,14 +245,14 @@ public class TokenService {
      */
     public List<Token> getActiveTokensForService(int serviceId) {
         return tokenRepo.findAll().stream()
-                .filter(t -> "Waiting".equals(t.getStatus()) && t.getService().getServiceId() == serviceId)
+                .filter(t -> "Waiting".equals(t.getStatus()) && (serviceId == -1 || t.getService().getServiceId() == serviceId))
                 .sorted(Comparator.comparing(Token::getPriorityValue)
                         .thenComparing(Token::getIssueTime))
                 .collect(Collectors.toList());
     }
 
-    private Token createToken(Citizen citizen, com.example.waitwise.models.Service service, String priorityRequest, String emergencyDescription) {
-        String priority = determinePriority(citizen, priorityRequest, emergencyDescription);
+    private Token createToken(Citizen citizen, com.example.waitwise.models.Service service, String priorityRequest, String emergencyDescription, boolean isStaff) {
+        String priority = determinePriority(citizen, priorityRequest, emergencyDescription, isStaff);
         int priorityValue = getPriorityValue(priority);
 
         String prefix = getServicePrefix(service.getServiceName());
@@ -294,14 +308,20 @@ public class TokenService {
         return saved;
     }
 
-    private String determinePriority(Citizen citizen, String requestedPriority, String emergencyDescription) {
+    private String determinePriority(Citizen citizen, String requestedPriority, String emergencyDescription, boolean isStaff) {
         if ("Golden".equalsIgnoreCase(requestedPriority)) return "Golden";
         if ("Emergency".equalsIgnoreCase(requestedPriority)) {
-            // Use NLP-based emergency detection instead of simple keyword matching
+            // Staff can override emergency without description
+            if (isStaff) return "Emergency";
+            
+            // Use NLP-based emergency detection for citizens
             if (EmergencyDetector.isEmergency(emergencyDescription)) return "Emergency";
+            
+            // If verification fails, do NOT auto-assign. Throw error so user can re-choose.
+            throw new RuntimeException("Emergency claim not verified. Please provide a more detailed description or choose a different priority.");
         }
         
-        // Auto assign based on age
+        // Auto assign based on age (for 'Auto' or failed emergency if we didn't throw)
         try {
             LocalDate dob = LocalDate.parse(citizen.getDateOfBirth());
             int age = Period.between(dob, LocalDate.now()).getYears();

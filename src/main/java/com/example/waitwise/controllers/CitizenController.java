@@ -65,7 +65,7 @@ public class CitizenController {
     public Map<String, Object> issueToken(@RequestParam String cnic, @RequestParam(required = false, defaultValue = "0") int serviceId, @RequestParam(required = false) String serviceName, @RequestParam String priorityRequest, @RequestParam(required = false) String emergencyDescription) {
         Token token;
         if (serviceId > 0) {
-            token = tokenService.generateNewToken(cnic, serviceId, priorityRequest, emergencyDescription);
+            token = tokenService.generateNewToken(cnic, serviceId, priorityRequest, emergencyDescription, false);
         } else if (serviceName != null && !serviceName.isEmpty()) {
             token = tokenService.generateNewTokenByName(cnic, serviceName, priorityRequest, emergencyDescription);
         } else {

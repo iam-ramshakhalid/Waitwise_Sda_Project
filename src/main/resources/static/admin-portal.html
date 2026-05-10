@@ -231,8 +231,14 @@
                                     <button type="button" onclick="generatePassword()" class="btn-primary" style="white-space:nowrap;padding:0 1rem;font-size:0.8rem;" title="Auto-generate a secure password"><i class="fas fa-key"></i> Generate</button>
                                 </div>
                             </div>
-                            <div class="form-group" style="flex:1;"><label>Phone Number</label><input type="text" id="staff-phone" class="form-control" placeholder="e.g. 03001234567"></div>
-                            <div class="form-group" style="flex:1;"><label>Email</label><input type="email" id="staff-email" class="form-control" placeholder="e.g. ahmed@mail.com"></div>
+                            <div class="form-group" style="flex:1;">
+                                <label>Phone Number *</label>
+                                <input type="tel" id="staff-phone" class="form-control" placeholder="03XXXXXXXXX" required maxlength="11" pattern="\d{11}" title="Phone number must be exactly 11 digits">
+                            </div>
+                            <div class="form-group" style="flex:1;">
+                                <label>Email Address *</label>
+                                <input type="email" id="staff-email" class="form-control" placeholder="example@gmail.com" required pattern="[a-zA-Z0-9._%+-]+@gmail\.com$" title="Only @gmail.com addresses are allowed">
+                            </div>
                         </div>
                         <div class="form-row" style="margin-top:0.5rem;">
                             <div class="form-group" style="flex:1;">
@@ -243,14 +249,8 @@
                                 </select>
                             </div>
                             <div class="form-group" style="flex:1;" id="counter-select-group">
-                                <label>Assign to Counter *</label>
-                                <select id="staff-counter" class="form-control" required>
-                                    <option value="1">Counter 1 — CNIC Renewal</option>
-                                    <option value="2">Counter 2 — Passport</option>
-                                    <option value="3">Counter 3 — FRC Document</option>
-                                    <option value="4">Counter 4 — Domicile</option>
-                                    <option value="5">Counter 5 — Birth Certificate</option>
-                                </select>
+                                <label>Assign to Counter # *</label>
+                                <input type="number" id="staff-counter" class="form-control" min="1" placeholder="e.g. 1, 10, 25" required>
                             </div>
                             <div class="form-group" style="display:flex;align-items:flex-end;">
                                 <button type="submit" class="btn-primary" style="height:42px;white-space:nowrap;padding:0 1.5rem;"><i class="fas fa-user-plus" style="margin-right:0.4rem;"></i>Hire Staff</button>
@@ -354,8 +354,14 @@
                 <input type="hidden" id="edit-id">
                 <div class="form-group"><label>Full Name</label><input type="text" id="edit-name" class="form-control" required></div>
                 <div class="form-row">
-                    <div class="form-group" style="flex:1;"><label>Phone</label><input type="text" id="edit-phone" class="form-control"></div>
-                    <div class="form-group" style="flex:1;"><label>Email</label><input type="email" id="edit-email" class="form-control"></div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Phone Number</label>
+                        <input type="tel" id="edit-phone" class="form-control" maxlength="11" pattern="\d{11}" title="Phone number must be exactly 11 digits">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Email</label>
+                        <input type="email" id="edit-email" class="form-control" pattern="[a-zA-Z0-9._%+-]+@gmail\.com$" title="Only @gmail.com addresses are allowed">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>New Password (leave blank to keep current)</label>
@@ -373,14 +379,8 @@
                         </select>
                     </div>
                     <div class="form-group" style="flex:1;" id="edit-counter-group">
-                        <label>Counter</label>
-                        <select id="edit-counter" class="form-control">
-                            <option value="1">Counter 1 — CNIC Renewal</option>
-                            <option value="2">Counter 2 — Passport</option>
-                            <option value="3">Counter 3 — FRC Document</option>
-                            <option value="4">Counter 4 — Domicile</option>
-                            <option value="5">Counter 5 — Birth Certificate</option>
-                        </select>
+                        <label>Counter #</label>
+                        <input type="number" id="edit-counter" class="form-control" min="1">
                     </div>
                 </div>
                 <div class="form-group">

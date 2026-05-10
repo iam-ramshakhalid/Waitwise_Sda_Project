@@ -127,16 +127,17 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const staff = JSON.parse(localStorage.getItem('staffUser'));
-            serviceId = localStorage.getItem('assignedServiceId');
+            // Global Pool: -1
+            serviceId = -1;
 
-            if (!staff || !staff.role.startsWith('CounterStaff') || !serviceId) {
+            if (!staff || !staff.role.startsWith('CounterStaff')) {
                 window.location.href = 'staff-login.html';
                 return;
             }
 
-            document.getElementById('counterIdDisplay').textContent = serviceId;
+            document.getElementById('counterIdDisplay').textContent = 'Global';
             refreshQueue();
-            setInterval(refreshQueue, 15000); // Background sync every 15s
+            setInterval(refreshQueue, 15000); 
         });
 
         function toggleQueueSidebar() {
@@ -205,9 +206,10 @@
                 `;
                 
                 card.innerHTML = `
-                    <div>
+                    <div style="flex: 1;">
                         <div style="font-size: 1.4rem; font-weight: 900; color: #F8FAFC; margin-bottom: 0.3rem;">${token.tokenNumber}</div>
-                        <div style="font-size: 0.9rem; color: #94A3B8; font-weight: 500;">${token.citizenName}</div>
+                        <div style="font-size: 0.9rem; color: #94A3B8; font-weight: 500;">${token.citizenName || 'Guest'}</div>
+                        <div style="color: #60A5FA; font-size: 0.8rem; margin-top: 5px;">${token.service ? token.service.serviceName : 'General'}</div>
                     </div>
                     <span style="padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.7rem; font-weight: 900; background: ${styles.bg}; color: ${styles.text}; text-transform: uppercase; letter-spacing: 1px;">
                         ${token.priorityType}
@@ -331,9 +333,10 @@
             document.getElementById('currentTokenDisplay').textContent = token.tokenNumber;
             
             document.getElementById('citizenInfoBox').style.display = 'block';
-            document.getElementById('citizenNameDisplay').textContent = token.citizenName || 'N/A';
+            document.getElementById('citizenNameDisplay').textContent = token.citizenName || 'Guest Citizen';
             document.getElementById('citizenCnicDisplay').textContent = token.citizenCnic || 'N/A';
             document.getElementById('citizenPhoneDisplay').textContent = (token.citizen && token.citizen.phoneNumber) || 'N/A';
+            document.getElementById('citizenServiceDisplay').textContent = token.service ? token.service.serviceName : 'General';
             
             const badge = document.getElementById('priorityBadge');
             const styles = getPriorityStyles(token.priorityType);

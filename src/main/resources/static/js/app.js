@@ -89,7 +89,13 @@ async function registerCitizen(event) {
         showError('registerError', 'Date of Birth must be 2015 or earlier.');
         return;
     }
+    
     const email = document.getElementById('email').value.trim();
+    if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email.toLowerCase())) {
+        showError('registerError', 'Only @gmail.com email addresses are allowed.');
+        return;
+    }
+
     const fullName = firstName + ' ' + lastName;
 
     showLoader();

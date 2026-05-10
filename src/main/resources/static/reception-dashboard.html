@@ -99,8 +99,9 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Citizen CNIC (Optional)</label>
-                        <input type="text" id="cnicInput" class="form-control" placeholder="XXXXX-XXXXXXX-X">
+                        <label class="form-label">Citizen CNIC</label>
+                        <input type="text" id="cnicInput" class="form-control" placeholder="12345-1234567-1" maxlength="15" oninput="formatCNIC(this)" required>
+                        <small id="cnicError" style="color: #EF4444; font-size: 0.75rem; margin-top: 0.25rem; display: none;">Invalid CNIC! Must be 13 digits.</small>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Priority Level</label>
@@ -111,7 +112,9 @@
                             <option value="Golden">Golden (Paid)</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary mt-4" style="width: 100%;">Generate Token</button>
+                    <button type="submit" id="btnGenerate" class="btn btn-primary mt-4" style="width: 100%;">
+                        <i class="fas fa-plus-circle"></i> Generate Token
+                    </button>
                 </form>
 
                 <div id="tokenResult" class="hidden" style="margin-top: 2rem; padding: 1.5rem; background: rgba(52, 211, 153, 0.1); border: 1px dotted #34D399; border-radius: 12px; text-align: center;">
@@ -120,8 +123,8 @@
                         <div id="resTokenNumber" style="font-size: 3.5rem; font-weight: 800; color: #F8FAFC;"></div>
                         <p id="resServiceName" style="color: var(--text-secondary); margin-bottom: 1rem;"></p>
                     </div>
-                    <button onclick="window.print()" class="btn btn-outline no-print" style="width: 100%;">
-                        <i class="fas fa-print"></i> Print Token
+                    <button onclick="resetIssueForm()" class="btn btn-primary" style="width: 100%; margin-top: 1rem; background: #34D399; color: #064E3B;">
+                        <i class="fas fa-user-plus"></i> Issue Another Token
                     </button>
                 </div>
             </div>
@@ -132,15 +135,22 @@
         <div id="escalateSection" class="tab-content hidden">
             <div class="glass-container" style="max-width: 800px; margin: 0 auto;">
                 <h2 class="title" style="color: #EF4444;"><i class="fas fa-exclamation-circle"></i> Emergency Escalation Bar</h2>
-                <div class="form-group">
-                    <label class="form-label">Filter by Service</label>
-                    <select id="escServiceSelect" class="form-control" onchange="loadEscalationList()">
-                        <option value="1">CNIC Renewal</option>
-                        <option value="2">Passport</option>
-                        <option value="3">FRC</option>
-                        <option value="4">Domicile</option>
-                        <option value="5">Birth Certificate</option>
-                    </select>
+                <div class="form-row" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 2; min-width: 250px;">
+                        <label class="form-label">Search Token or CNIC</label>
+                        <input type="text" id="escSearchInput" class="form-control" placeholder="e.g. C001 or 12345-..." oninput="filterEscalationList()">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label class="form-label">Filter by Service</label>
+                        <select id="escServiceSelect" class="form-control" onchange="loadEscalationList()">
+                            <option value="-1">All Services</option>
+                            <option value="1">CNIC Renewal</option>
+                            <option value="2">Passport</option>
+                            <option value="3">FRC</option>
+                            <option value="4">Domicile</option>
+                            <option value="5">Birth Certificate</option>
+                        </select>
+                    </div>
                 </div>
                 <div id="escMsg" class="alert hidden"></div>
                 <div style="overflow-x: auto; margin-top: 1.5rem;">
@@ -201,42 +211,96 @@
         async function issueToken(e) {
             e.preventDefault();
             const sid = document.getElementById('serviceSelect').value;
-            const cnic = document.getElementById('cnicInput').value;
+            const cnic = document.getElementById('cnicInput').value.trim();
             const priority = document.getElementById('prioritySelect').value;
             
+            // CNIC Length Validation
+            const errorEl = document.getElementById('cnicError');
+            if (cnic.length < 15) {
+                errorEl.style.display = 'block';
+                return;
+            } else {
+                errorEl.style.display = 'none';
+            }
+            
+            // No manual alert needed as the mask handles the format
+            
+            const btn = document.getElementById('btnGenerate');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
             try {
                 const res = await fetch(`${API}/issue-token?serviceId=${sid}&priority=${priority}&cnic=${cnic}`, { method: 'POST' });
                 if (res.ok) {
                     const token = await res.json();
                     document.getElementById('resTokenNumber').textContent = token.tokenNumber;
                     document.getElementById('resServiceName').textContent = document.querySelector(`#serviceSelect option[value="${sid}"]`).textContent;
+                    
                     document.getElementById('tokenResult').classList.remove('hidden');
+                    document.querySelector('form').classList.add('hidden'); // Hide form while result is shown
                     loadQueueSummary();
                 } else {
                     const err = await res.json();
                     alert(err.message || 'Failed to issue token');
                 }
             } catch (e) { alert('Network Error'); }
+            finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus-circle"></i> Generate Token';
+            }
         }
 
+        function formatCNIC(input) {
+            document.getElementById('cnicError').style.display = 'none'; // Hide error while typing
+            let val = input.value.replace(/\D/g, ''); // numbers only
+            if (val.length > 5) val = val.slice(0, 5) + '-' + val.slice(5);
+            if (val.length > 13) val = val.slice(0, 13) + '-' + val.slice(13);
+            input.value = val.slice(0, 15);
+        }
+
+        function resetIssueForm() {
+            document.getElementById('tokenResult').classList.add('hidden');
+            document.querySelector('form').classList.remove('hidden');
+            document.querySelector('form').reset();
+            document.getElementById('cnicInput').value = '';
+        }
+
+
+        let allActiveTokens = [];
 
         async function loadEscalationList() {
             const sid = document.getElementById('escServiceSelect').value;
             try {
                 const res = await fetch(`${API}/active-tokens?serviceId=${sid}`);
-                const tokens = await res.json();
-                const tbody = document.getElementById('escTableBody');
-                tbody.innerHTML = tokens.map(t => `
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                        <td style="padding: 1rem; font-weight: 700;">${t.tokenNumber}</td>
-                        <td style="padding: 1rem; color: ${t.priorityType === 'Emergency' ? '#EF4444' : '#94A3B8'};">${t.priorityType}</td>
-                        <td style="padding: 1rem;">${t.citizenName} <br><small style="color: #64748b;">${t.citizenCnic}</small></td>
-                        <td style="padding: 1rem; text-align: center;">
-                            <button onclick="escalate(${t.tokenId})" class="btn" style="padding: 0.5rem 1rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid #EF4444;">ESCALATE</button>
-                        </td>
-                    </tr>
-                `).join('');
+                allActiveTokens = await res.json();
+                filterEscalationList();
             } catch (e) { console.error(e); }
+        }
+
+        function filterEscalationList() {
+            const query = document.getElementById('escSearchInput').value.toLowerCase().trim();
+            const tbody = document.getElementById('escTableBody');
+            
+            const filtered = allActiveTokens.filter(t => {
+                return t.tokenNumber.toLowerCase().includes(query) || 
+                       t.citizenCnic.includes(query) ||
+                       t.citizenName.toLowerCase().includes(query);
+            });
+
+            tbody.innerHTML = filtered.map(t => `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 1rem; font-weight: 700;">${t.tokenNumber}</td>
+                    <td style="padding: 1rem; color: ${t.priorityType === 'Emergency' ? '#EF4444' : '#94A3B8'};">${t.priorityType}</td>
+                    <td style="padding: 1rem;">${t.citizenName} <br><small style="color: #64748b;">${t.citizenCnic}</small></td>
+                    <td style="padding: 1rem; text-align: center;">
+                        <button onclick="escalate(${t.tokenId})" class="btn" style="padding: 0.5rem 1rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid #EF4444;">ESCALATE</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem; color: #94A3B8;">No matching waiting tokens found.</td></tr>`;
+            }
         }
 
         async function escalate(tid) {

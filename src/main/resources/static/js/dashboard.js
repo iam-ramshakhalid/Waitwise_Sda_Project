@@ -80,12 +80,16 @@ function closeModal(id) {
 
 async function submitEmergency() {
     const text = document.getElementById('emergencyText').value.trim();
+    const errorEl = document.getElementById('emergencyError');
+    
     if (!text) {
-        document.getElementById('emergencyError').textContent = "Please describe your emergency.";
-        document.getElementById('emergencyError').classList.remove('hidden');
+        errorEl.textContent = "Please describe your emergency.";
+        errorEl.classList.remove('hidden');
         return;
     }
-    closeModal('emergencyModal');
+    
+    errorEl.classList.add('hidden');
+    // We don't close the modal yet. We wait for generateToken to verify.
     generateToken(text);
 }
 
@@ -111,8 +115,18 @@ async function generateToken(emergencyDescription = '') {
 
         const data = await response.json();
         if (!response.ok) {
-            alert(data.message || "Failed to generate token.");
+            if (currentPriority === 'Emergency') {
+                const errorEl = document.getElementById('emergencyError');
+                errorEl.textContent = data.message || "Verification failed.";
+                errorEl.classList.remove('hidden');
+            } else {
+                alert(data.message || "Failed to generate token.");
+            }
             return;
+        }
+
+        if (currentPriority === 'Emergency') {
+            closeModal('emergencyModal');
         }
 
         renderDigitalToken(data);
@@ -136,9 +150,6 @@ function renderDigitalToken(data) {
     badge.textContent = token.priorityType.toUpperCase();
     badge.className = `badge ${token.priorityType.toLowerCase()}`;
     
-    if (currentPriority === 'Emergency' && token.priorityType !== 'Emergency') {
-        alert("Notice: Your emergency claim was not verified by the system. You have been assigned normal/senior priority based on your age.");
-    }
 
     sessionStorage.setItem('activeTokenId', token.tokenId);
 }

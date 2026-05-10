@@ -15,7 +15,7 @@ public class CounterController {
     private com.example.waitwise.services.TokenService tokenService;
 
     @PostMapping("/call-next")
-    public Token callNextToken(@RequestParam int serviceId) {
+    public Token callNextToken(@RequestParam(defaultValue = "-1") int serviceId) {
         return tokenService.callNextToken(serviceId);
     }
 
@@ -35,7 +35,7 @@ public class CounterController {
     }
 
     @GetMapping("/queue")
-    public List<Token> getQueue(@RequestParam int serviceId) {
+    public List<Token> getQueue(@RequestParam(defaultValue = "-1") int serviceId) {
         return tokenService.getActiveTokensForService(serviceId);
     }
 }

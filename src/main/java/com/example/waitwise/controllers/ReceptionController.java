@@ -42,7 +42,7 @@ public class ReceptionController {
         if (cnic == null || cnic.trim().isEmpty()) {
             return tokenService.generateWalkInToken(serviceId, priority);
         }
-        return tokenService.generateNewToken(cnic, serviceId, priority, "");
+        return tokenService.generateNewToken(cnic, serviceId, priority, "", true);
     }
 
     /**

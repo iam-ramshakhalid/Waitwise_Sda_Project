@@ -223,15 +223,22 @@ public class AdminController {
             return ResponseEntity.badRequest().body(Map.of("message", "Full name is required"));
         }
 
+        if (email != null && !email.toLowerCase().endsWith("@gmail.com")) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Only @gmail.com addresses are allowed"));
+        }
+
+        if (phoneNumber != null && phoneNumber.length() != 11) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Phone number must be exactly 11 digits"));
+        }
+
         // M5: Check for duplicate staff ID
         if (userRepository.findByUsername(username).isPresent()) {
             return ResponseEntity.badRequest().body(Map.of("message", "Staff ID already exists"));
         }
 
-        boolean validRole = "ReceptionStaff".equals(role) || 
-                           (role.startsWith("CounterStaff") && role.length() > "CounterStaff".length());
+        boolean validRole = "ReceptionStaff".equals(role) || role.startsWith("CounterStaff");
         if (!validRole) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Invalid role. Must be ReceptionStaff or CounterStaff1-5"));
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid role. Must be ReceptionStaff or CounterStaff"));
         }
 
         User user = new User();
@@ -276,18 +283,25 @@ public class AdminController {
         }
         if (payload.containsKey("role") && payload.get("role") != null) {
             String role = payload.get("role");
-            boolean validRole = "ReceptionStaff".equals(role) || 
-                               (role.startsWith("CounterStaff") && role.length() > "CounterStaff".length());
+            boolean validRole = "ReceptionStaff".equals(role) || role.startsWith("CounterStaff");
             if (!validRole) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Invalid role"));
             }
             user.setRole(role);
         }
         if (payload.containsKey("phoneNumber")) {
-            user.setPhoneNumber(payload.get("phoneNumber"));
+            String phone = payload.get("phoneNumber");
+            if (phone != null && phone.length() != 11) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Phone number must be exactly 11 digits"));
+            }
+            user.setPhoneNumber(phone);
         }
         if (payload.containsKey("email")) {
-            user.setEmail(payload.get("email"));
+            String email = payload.get("email");
+            if (email != null && !email.toLowerCase().endsWith("@gmail.com")) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Only @gmail.com addresses are allowed"));
+            }
+            user.setEmail(email);
         }
         if (payload.containsKey("active")) {
             user.setActive("true".equals(payload.get("active")));
@@ -425,51 +439,10 @@ public class AdminController {
         }
 
         if (role.startsWith("CounterStaff")) {
-            try {
-                int serviceId = Integer.parseInt(role.replace("CounterStaff", ""));
-                Service service = serviceRepository.findById(serviceId).orElse(null);
-
-                if (service == null) {
-                    performance.put("tokensServed", 0);
-                    performance.put("message", "Not enough data");
-                    return ResponseEntity.ok(performance);
-                }
-
-                LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
-                List<Token> servedTokens = tokenRepository.findByServiceAndStatusAndStatusUpdateTimeBetween(
-                        service, "Served", sixMonthsAgo, LocalDateTime.now());
-
-                long tokensServed = servedTokens.size();
-
-                if (tokensServed == 0) {
-                    performance.put("tokensServed", 0);
-                    performance.put("avgServiceTime", 0);
-                    performance.put("noShowCount", 0);
-                    performance.put("message", "Not enough data");
-                    return ResponseEntity.ok(performance);
-                }
-
-                double totalMinutes = servedTokens.stream()
-                        .filter(t -> t.getIssueTime() != null && t.getStatusUpdateTime() != null)
-                        .mapToDouble(t -> Duration.between(t.getIssueTime(), t.getStatusUpdateTime()).toMinutes())
-                        .average()
-                        .orElse(0.0);
-
-                List<Token> expiredTokens = tokenRepository.findByServiceAndStatusAndStatusUpdateTimeBetween(
-                        service, "Expired", sixMonthsAgo, LocalDateTime.now());
-                long noShowCount = expiredTokens.stream()
-                        .filter(t -> t.getMissedCallCount() > 0)
-                        .count();
-
-                performance.put("tokensServed", tokensServed);
-                performance.put("avgServiceTime", Math.round(totalMinutes * 10.0) / 10.0);
-                performance.put("noShowCount", noShowCount);
-                performance.put("serviceName", service.getServiceName());
-
-            } catch (NumberFormatException e) {
-                performance.put("tokensServed", 0);
-                performance.put("message", "Not enough data");
-            }
+            // Since counters are now unified, we track overall performance
+            // For now, we return a general staff overview
+            performance.put("message", "General performance metrics (Global Pool enabled)");
+            performance.put("tokensServed", "N/A"); // Will need servedBy field in Token for detailed stats
         } else {
             performance.put("tokensServed", 0);
             performance.put("avgServiceTime", 0);
