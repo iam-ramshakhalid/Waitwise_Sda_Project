@@ -54,6 +54,10 @@
                             <div id="citizenPhoneDisplay" style="font-size: 1rem; color: #F8FAFC; font-weight: 600;"></div>
                         </div>
                         <div>
+                            <label style="display: block; font-size: 0.65rem; color: #94A3B8; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Service Type</label>
+                            <div id="citizenServiceDisplay" style="font-size: 1rem; color: #60A5FA; font-weight: 700;"></div>
+                        </div>
+                        <div>
                             <label style="display: block; font-size: 0.65rem; color: #94A3B8; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Priority</label>
                             <div id="priorityBadge" style="display: inline-block; padding: 0.3rem 0.7rem; border-radius: 6px; font-size: 0.7rem; font-weight: 900; text-transform: uppercase;"></div>
                         </div>
@@ -335,7 +339,7 @@
             document.getElementById('citizenInfoBox').style.display = 'block';
             document.getElementById('citizenNameDisplay').textContent = token.citizenName || 'Guest Citizen';
             document.getElementById('citizenCnicDisplay').textContent = token.citizenCnic || 'N/A';
-            document.getElementById('citizenPhoneDisplay').textContent = (token.citizen && token.citizen.phoneNumber) || 'N/A';
+            document.getElementById('citizenPhoneDisplay').textContent = token.citizenPhone || 'N/A';
             document.getElementById('citizenServiceDisplay').textContent = token.service ? token.service.serviceName : 'General';
             
             const badge = document.getElementById('priorityBadge');
