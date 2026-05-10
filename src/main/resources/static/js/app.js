@@ -84,8 +84,14 @@ async function registerCitizen(event) {
         return;
     }
 
-    const dobYear = new Date(dateOfBirth).getFullYear();
-    if (dobYear > 2015) {
+    const dateParts = dateOfBirth.split('-');
+    const dobObj = new Date(dateOfBirth);
+    if (dobObj.getFullYear() != dateParts[0] || (dobObj.getMonth() + 1) != dateParts[1] || dobObj.getDate() != dateParts[2]) {
+        showError('registerError', 'Date cannot be out of range.');
+        return;
+    }
+
+    if (dobObj.getFullYear() > 2015) {
         showError('registerError', 'Date of Birth must be 2015 or earlier.');
         return;
     }
@@ -303,8 +309,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const val = e.target.value;
             if (!val) return;
             
-            const date = new Date(val);
-            if (date.getFullYear() > 2015) {
+            const dateParts = val.split('-');
+            const dateObj = new Date(val);
+            
+            // Logic check: Does the day/month match? (Catches Feb 31, April 31, etc.)
+            if (dateObj.getFullYear() != dateParts[0] || (dateObj.getMonth() + 1) != dateParts[1] || dateObj.getDate() != dateParts[2]) {
+                e.target.value = ''; 
+                showError('registerError', 'Date cannot be out of range.');
+                document.getElementById('registerError').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            if (dateObj.getFullYear() > 2015) {
                 e.target.value = ''; // Reset the input
                 showError('registerError', 'Invalid Date: Date of Birth must be 2015 or earlier.');
                 // Scroll to error if needed
@@ -312,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 // Only clear if the current error IS about DOB
                 const currentError = document.getElementById('registerError').textContent;
-                if (currentError.includes('Date of Birth')) {
+                if (currentError.includes('Date of Birth') || currentError.includes('out of range')) {
                     clearError('registerError');
                 }
             }
