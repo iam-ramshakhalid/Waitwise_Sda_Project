@@ -67,6 +67,7 @@ public class TokenService {
             c.setCnic("WALKIN");
             c.setFullName("Walk-In Citizen");
             c.setPhoneNumber("00000000000");
+            c.setDateOfBirth("1990-01-01"); // Default to avoid age-check crashes
             return citizenRepo.save(c);
         });
         com.example.waitwise.models.Service service = serviceRepo.findById(serviceId).orElseThrow(() -> new RuntimeException("Service not found!"));
@@ -284,7 +285,20 @@ public class TokenService {
     }
 
     private Token createToken(Citizen citizen, com.example.waitwise.models.Service service, String priorityRequest, String emergencyDescription, boolean isStaff) {
-        if (citizen.isBlacklisted()) {
+        // --- 1. One Active Token Per Service Limit ---
+        if (!isStaff && !"WALKIN".equals(citizen.getCnic())) {
+            List<String> activeStatuses = List.of("Waiting", "Called", "Serving");
+            boolean alreadyHasActiveToken = tokenRepo.findAll().stream()
+                    .anyMatch(t -> t.getCitizen().getCnic().equals(citizen.getCnic()) &&
+                                   t.getService().getServiceId() == service.getServiceId() &&
+                                   activeStatuses.contains(t.getStatus()));
+            
+            if (alreadyHasActiveToken) {
+                throw new RuntimeException("Access Denied: You already have an active token for " + service.getServiceName() + ". Please complete or cancel your current turn before requesting a new one.");
+            }
+        }
+
+        if (!isStaff && citizen.isBlacklisted()) {
             if (citizen.getBlacklistReleaseDate() != null && LocalDateTime.now().isAfter(citizen.getBlacklistReleaseDate())) {
                 // Time's up! Reset the user
                 citizen.setBlacklisted(false);

@@ -120,7 +120,11 @@ async function generateToken(emergencyDescription = '') {
                 errorEl.textContent = data.message || "Verification failed.";
                 errorEl.classList.remove('hidden');
             } else {
-                alert(data.message || "Failed to generate token.");
+                // NEW: Use custom modal instead of alert
+                const limitMsg = document.getElementById('limitModalMessage');
+                const limitModal = document.getElementById('limitModal');
+                limitMsg.textContent = data.message || "Failed to generate token.";
+                limitModal.classList.remove('hidden');
             }
             return;
         }

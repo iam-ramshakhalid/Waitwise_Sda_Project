@@ -91,11 +91,11 @@
                     <div class="form-group">
                         <label class="form-label">Select Service</label>
                         <select id="serviceSelect" class="form-control" required>
-                            <option value="1">CNIC Renewal (Counter 1)</option>
-                            <option value="2">New Passport (Counter 2)</option>
-                            <option value="3">FRC Document (Counter 3)</option>
-                            <option value="4">Domicile (Counter 4)</option>
-                            <option value="5">Birth Certificate (Counter 5)</option>
+                            <option value="1">CNIC Renewal</option>
+                            <option value="2">New Passport</option>
+                            <option value="3">FRC Document</option>
+                            <option value="4">Domicile</option>
+                            <option value="5">Birth Certificate</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -174,6 +174,23 @@
             </div>
         </div>
 
+        </div>
+
+    </div>
+
+    <!-- NEW: Escalation Confirmation Modal -->
+    <div id="escalateConfirmModal" class="modal-overlay hidden" style="z-index: 10001;">
+        <div class="modal-card" style="border: 2px solid #EF4444; box-shadow: 0 0 50px rgba(239, 68, 68, 0.25); text-align: center; max-width: 400px;">
+            <div style="width: 70px; height: 70px; background: rgba(239, 68, 68, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #EF4444; font-size: 2rem; border: 1px solid rgba(239, 68, 68, 0.3);">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <h2 style="font-size: 1.75rem; color: #F8FAFC; margin-bottom: 0.75rem;">Confirm Escalation</h2>
+            <p style="font-size: 0.95rem; color: #94A3B8; line-height: 1.6; margin-bottom: 2rem;">Are you sure you want to push token <strong id="escTokenNumDisplay" style="color: #F8FAFC;">---</strong> to the very front of the queue?</p>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn" style="flex: 1; background: #334155; color: white; border: 1px solid rgba(255,255,255,0.1); padding: 0.8rem; border-radius: 10px; font-weight: 600;" onclick="closeModal('escalateConfirmModal')">Cancel</button>
+                <button class="btn" id="btnConfirmEscalate" style="flex: 1; background: #EF4444; color: white; border-radius: 10px; font-weight: 600;">Confirm</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -287,9 +304,10 @@
             const tbody = document.getElementById('escTableBody');
             
             const filtered = allActiveTokens.filter(t => {
-                return t.tokenNumber.toLowerCase().includes(query) || 
-                       t.citizenCnic.includes(query) ||
-                       t.citizenName.toLowerCase().includes(query);
+                const num = (t.tokenNumber || "").toLowerCase();
+                const cnic = (t.citizenCnic || "");
+                const name = (t.citizenName || "").toLowerCase();
+                return num.includes(query) || cnic.includes(query) || name.includes(query);
             });
 
             tbody.innerHTML = filtered.map(t => `
@@ -298,7 +316,7 @@
                     <td style="padding: 1rem; color: ${t.priorityType === 'Emergency' ? '#EF4444' : '#94A3B8'};">${t.priorityType}</td>
                     <td style="padding: 1rem;">${t.citizenName} <br><small style="color: #64748b;">${t.citizenCnic}</small></td>
                     <td style="padding: 1rem; text-align: center;">
-                        <button onclick="escalate(${t.tokenId})" class="btn" style="padding: 0.5rem 1rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid #EF4444;">ESCALATE</button>
+                        <button onclick="escalate(${t.tokenId}, '${t.tokenNumber}')" class="btn" style="padding: 0.5rem 1rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid #EF4444;">ESCALATE</button>
                     </td>
                 </tr>
             `).join('');
@@ -308,15 +326,27 @@
             }
         }
 
-        async function escalate(tid) {
-            if (!confirm('Push this token to the front of the queue?')) return;
-            try {
-                const res = await fetch(`${API}/escalate?tokenId=${tid}`, { method: 'POST' });
-                const data = await res.json();
-                alert(data.message);
-                loadEscalationList();
-                loadQueueSummary();
-            } catch (e) { alert('Escalation failed'); }
+        let pendingEscalationId = null;
+
+        function escalate(tid, tokenNum) {
+            pendingEscalationId = tid;
+            document.getElementById('escTokenNumDisplay').textContent = tokenNum;
+            document.getElementById('escalateConfirmModal').classList.remove('hidden');
+            
+            document.getElementById('btnConfirmEscalate').onclick = async () => {
+                closeModal('escalateConfirmModal');
+                try {
+                    const res = await fetch(`${API}/escalate?tokenId=${pendingEscalationId}`, { method: 'POST' });
+                    const data = await res.json();
+                    alert(data.message);
+                    loadEscalationList();
+                    loadQueueSummary();
+                } catch (e) { alert('Escalation failed'); }
+            };
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
         }
 
         function logoutStaff() {

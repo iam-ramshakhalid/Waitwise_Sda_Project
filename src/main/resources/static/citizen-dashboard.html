@@ -390,6 +390,18 @@
         </div>
     </div>
 
+    <!-- NEW: Smart Limit / Access Denied Modal -->
+    <div id="limitModal" class="modal-overlay hidden" style="z-index: 10001;">
+        <div class="modal-card" style="border: 2px solid #EF4444; box-shadow: 0 0 50px rgba(239, 68, 68, 0.25); text-align: center; max-width: 400px;">
+            <div style="width: 70px; height: 70px; background: rgba(239, 68, 68, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #EF4444; font-size: 2rem; border: 1px solid rgba(239, 68, 68, 0.3);">
+                <i class="fas fa-shield-exclamation"></i>
+            </div>
+            <h2 style="font-size: 1.75rem; color: #F8FAFC; margin-bottom: 0.75rem;">Request Denied</h2>
+            <p id="limitModalMessage" style="font-size: 0.95rem; color: #94A3B8; line-height: 1.6; margin-bottom: 2rem;">You already have an active token for this service.</p>
+            <button class="btn btn-primary" style="background: #334155; color: white; border: 1px solid rgba(255,255,255,0.1); width: 100%; padding: 0.8rem; border-radius: 10px; font-weight: 600;" onclick="closeModal('limitModal')">Understand</button>
+        </div>
+    </div>
+
     <script src="js/dashboard.js?v=3.0"></script>
 </body>
 </html>
