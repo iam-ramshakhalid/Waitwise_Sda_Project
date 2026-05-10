@@ -1,0 +1,8 @@
+### Test Ping
+GET http://localhost:8081/api/reception/ping
+
+### Generate Token (POST Request)
+POST http://localhost:8081/api/reception/issue-token?cnic=35202-1234567-1&serviceId=1&priority=Emergency
+
+### Test Login (Admin Account)
+POST http://localhost:8081/api/auth/login?username=admin&password=admin123

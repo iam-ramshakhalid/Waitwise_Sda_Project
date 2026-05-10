@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaitWise - Smart Queue Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles-v2.css">
+</head>
+<body>
+
+    <!-- Back button hidden on the very first page or disabled visually -->
+    <a href="#" class="back-btn" style="opacity: 0.5; pointer-events: none;"><i class="fas fa-home"></i> Home</a>
+
+    <!-- Hero Section with slide-down animation -->
+    <div class="hero-section text-center" style="max-width: 800px; margin: 0 auto; min-height: 90vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        
+        <!-- WW Logo inside Rounded Square -->
+        <svg width="90" height="90" viewBox="0 0 100 100" fill="none" class="floating-animation" style="margin-bottom: 1.5rem; filter: drop-shadow(0 0 15px rgba(217, 119, 6, 0.4));">
+            <rect x="20" y="20" width="60" height="60" rx="16" stroke="#D97706" stroke-width="5" />
+            <text x="32" y="66" font-family="'Inter', sans-serif" font-weight="900" font-size="40" fill="#D97706" stroke="#D97706" stroke-width="1.5" stroke-linejoin="round" text-anchor="middle">W</text>
+            <text x="68" y="66" font-family="'Inter', sans-serif" font-weight="900" font-size="40" fill="#D97706" stroke="#D97706" stroke-width="1.5" stroke-linejoin="round" text-anchor="middle">W</text>
+        </svg>
+        
+        <h1 class="title" style="margin-bottom: 1rem; font-size: 3rem; font-weight: 800; letter-spacing: -1px; color: var(--text-secondary);">WaitWise</h1>
+        
+        <!-- Smart Queue Badge -->
+        <div style="display: inline-block; background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.2); color: #94A3B8; padding: 0.4rem 1.2rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3.5rem;">
+            Smart Queue Management System
+        </div>
+        
+        <!-- Giant highly visible slogan -->
+        <h2 style="font-size: 4rem; font-weight: 900; color: #F8FAFC; margin-bottom: 3.5rem; line-height: 1.1; letter-spacing: -2px;">
+            <span style="background: linear-gradient(90deg, #FBBF24, #D97706); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Skip the wait.</span> <br> 
+            <span style="color: #E2E8F0;">Not the service.</span>
+        </h2>
+        
+        <div>
+            <button class="btn btn-primary" style="max-width: 280px; font-size: 1.25rem; font-weight: 600; padding: 1.2rem; border-radius: 9999px; box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5); transition: all 0.3s ease;" onclick="window.location.href='roles.html'">
+                Get Started <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Feature Cards Section - pop up on scroll -->
+    <div class="feature-cards-row" id="featureCards">
+        <div class="feature-card feature-card-1" id="featureCard1">
+            <div class="feature-icon feature-icon-green">
+                <i class="fas fa-satellite-dish"></i>
+            </div>
+            <h3 class="feature-title">Live Tracking</h3>
+            <p class="feature-desc">Monitor your queue position in real-time with instant updates and notifications.</p>
+        </div>
+        <div class="feature-card feature-card-2" id="featureCard2">
+            <div class="feature-icon feature-icon-blue">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <h3 class="feature-title">Smart Priority Routing</h3>
+            <p class="feature-desc">Intelligent queue management that prioritizes emergencies and special needs automatically.</p>
+        </div>
+        <div class="feature-card feature-card-3" id="featureCard3">
+            <div class="feature-icon feature-icon-amber">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <h3 class="feature-title">Instant Digital Tokens</h3>
+            <p class="feature-desc">Get your digital token instantly — no paper, no hassle, just scan and go.</p>
+        </div>
+    </div>
+
+    <script>
+        // Intersection Observer for pop-up animation on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('pop-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.feature-card').forEach(card => observer.observe(card));
+    </script>
+
+</body>
+</html>

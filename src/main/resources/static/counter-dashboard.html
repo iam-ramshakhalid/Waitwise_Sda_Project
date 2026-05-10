@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaitWise - Counter Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles-v2.css">
+</head>
+<body>
+
+    <nav style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 2rem;">
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-blue);">
+            WaitWise <span style="color: var(--text-secondary); font-size: 1rem; font-weight: 500;">| Counter <span id="counterIdDisplay"></span></span>
+        </div>
+        <div style="display: flex; gap: 1.5rem; align-items: center;">
+            <button onclick="toggleQueueSidebar()" class="btn" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #60A5FA; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
+                <i class="fas fa-list-ul" style="margin-right: 0.5rem;"></i> View Waiting List
+            </button>
+            <div style="height: 24px; width: 1px; background: rgba(255,255,255,0.1);"></div>
+            <button onclick="logoutStaff()" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </nav>
+
+    <div style="max-width: 700px; margin: 0 auto; padding: 0 2rem;">
+        
+        <!-- Main Panel: Currently Serving -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div id="messageBox" class="alert hidden" style="text-align: center; font-weight: 600;"></div>
+
+            <div class="glass-container" style="padding: 2.5rem 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; position: relative; overflow: hidden; min-height: 450px; border-radius: 24px;">
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(90deg, #3B82F6, #60A5FA);"></div>
+                
+                <h3 style="color: #60A5FA; font-size: 0.8rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 800; opacity: 0.7;">Now Calling</h3>
+                
+                <div id="currentTokenDisplay" style="font-size: 5.5rem; font-weight: 900; color: #F8FAFC; letter-spacing: 4px; line-height: 1; margin-bottom: 2rem; text-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);">----</div>
+
+                <!-- Expanded Citizen Details Card -->
+                <div id="citizenInfoBox" style="width: 100%; max-width: 500px; background: rgba(15, 23, 42, 0.5); padding: 1.8rem; border-radius: 20px; border: 1px solid rgba(59, 130, 246, 0.2); margin-bottom: 2.5rem; display: none; backdrop-filter: blur(10px); box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; text-align: left;">
+                        <div>
+                            <label style="display: block; font-size: 0.65rem; color: #94A3B8; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Full Name</label>
+                            <div id="citizenNameDisplay" style="font-size: 1.1rem; font-weight: 700; color: #F8FAFC;"></div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.65rem; color: #94A3B8; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">CNIC Number</label>
+                            <div id="citizenCnicDisplay" style="font-size: 1rem; color: #60A5FA; font-family: monospace; font-weight: 700;"></div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.65rem; color: #94A3B8; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Phone Number</label>
+                            <div id="citizenPhoneDisplay" style="font-size: 1rem; color: #F8FAFC; font-weight: 600;"></div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.65rem; color: #94A3B8; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Priority</label>
+                            <div id="priorityBadge" style="display: inline-block; padding: 0.3rem 0.7rem; border-radius: 6px; font-size: 0.7rem; font-weight: 900; text-transform: uppercase;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tokenStatusDisplay" style="display: inline-block; padding: 0.6rem 2rem; border-radius: 9999px; font-size: 1.1rem; font-weight: 800; background: rgba(148, 163, 184, 0.1); color: #94A3B8; text-transform: uppercase; letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 2rem;">Status: Waiting</div>
+
+                <div id="timerContainer" class="hidden" style="width: 100%; max-width: 320px; background: rgba(239, 68, 68, 0.1); padding: 1.3rem; border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <div style="font-size: 2.8rem; font-weight: 900; color: #EF4444; font-variant-numeric: tabular-nums;" id="timerDisplay">01:00</div>
+                    <p style="font-size: 0.75rem; color: #EF4444; margin-top: 0.3rem; font-weight: 800; letter-spacing: 1px;">TIME UNTIL NO-SHOW</p>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div style="display: flex; gap: 1.2rem; margin-bottom: 3rem;">
+                <button id="btnCallNext" onclick="callNext()" class="btn btn-primary" style="flex: 1; padding: 1.5rem; font-size: 1.2rem; border-radius: 18px; background: linear-gradient(135deg, #3B82F6, #2563EB); font-weight: 800;">
+                    <i class="fas fa-bullhorn" style="margin-right: 0.7rem;"></i> Next Citizen
+                </button>
+                
+                <button id="btnServe" onclick="startServing()" class="btn hidden" style="flex: 1; padding: 1.5rem; font-size: 1.2rem; border-radius: 18px; background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: 800;">
+                    <i class="fas fa-play" style="margin-right: 0.7rem;"></i> Begin Service
+                </button>
+
+                <button id="btnServed" onclick="markServed()" class="btn hidden" style="flex: 1; padding: 1.5rem; font-size: 1.2rem; border-radius: 18px; background: linear-gradient(135deg, #34D399, #059669); color: #064E3B; font-weight: 800;">
+                    <i class="fas fa-check-double" style="margin-right: 0.7rem;"></i> Finish
+                </button>
+
+                <button id="btnSkip" onclick="skipToken()" class="btn hidden" style="flex: 1; padding: 1.5rem; font-size: 1.2rem; border-radius: 18px; background: linear-gradient(135deg, #EF4444, #DC2626); color: white; font-weight: 800;">
+                    <i class="fas fa-user-slash" style="margin-right: 0.7rem;"></i> Skip
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide-out Sidebar: Service Queue -->
+    <div id="queueSidebar" style="position: fixed; top: 0; right: -480px; width: 450px; height: 100vh; background: rgba(15, 23, 42, 0.98); border-left: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; overflow: hidden; backdrop-filter: blur(30px); z-index: 1000; transition: right 0.5s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: -30px 0 60px rgba(0,0,0,0.6);">
+        <div style="padding: 2.5rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="color: #F8FAFC; font-size: 1.4rem; font-weight: 800;"><i class="fas fa-users-line" style="margin-right: 1rem; color: #3B82F6;"></i> Waiting List</h3>
+            <button onclick="toggleQueueSidebar()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94A3B8; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div style="padding: 1.2rem; background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), transparent); display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 2rem;">
+            <span style="font-size: 0.8rem; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Current Capacity</span>
+            <span id="queueCount" style="background: #3B82F6; color: white; padding: 0.4rem 1.2rem; border-radius: 999px; font-size: 0.85rem; font-weight: 900; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">0 WAITING</span>
+        </div>
+
+        <div style="flex: 1; overflow-y: auto; padding: 2rem;">
+            <div id="queueListContainer" style="display: flex; flex-direction: column; gap: 1.2rem;">
+                <!-- Token cards populated by JS -->
+            </div>
+            <div id="emptyQueueMsg" style="text-align: center; color: #64748B; padding: 8rem 2rem; display: none;">
+                <div style="width: 80px; height: 80px; background: rgba(148, 163, 184, 0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
+                    <i class="fas fa-mug-hot" style="font-size: 2.5rem; opacity: 0.2;"></i>
+                </div>
+                <p style="font-weight: 700; font-size: 1.25rem; color: #F8FAFC;">All caught up!</p>
+                <p style="font-size: 0.95rem; margin-top: 0.8rem; line-height: 1.6; opacity: 0.6;">There are no more citizens in the queue. You can take a quick break.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for Sidebar -->
+    <div id="sidebarOverlay" onclick="toggleQueueSidebar()" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 999; display: none; opacity: 0; transition: opacity 0.4s ease;"></div>
+
+    <script>
+        let currentTokenId = null;
+        let timerInterval = null;
+        let serviceId = null;
+        let isSidebarOpen = false;
+        const API_BASE = 'http://localhost:8081/api/counter';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const staff = JSON.parse(localStorage.getItem('staffUser'));
+            serviceId = localStorage.getItem('assignedServiceId');
+
+            if (!staff || !staff.role.startsWith('CounterStaff') || !serviceId) {
+                window.location.href = 'staff-login.html';
+                return;
+            }
+
+            document.getElementById('counterIdDisplay').textContent = serviceId;
+            refreshQueue();
+            setInterval(refreshQueue, 15000); // Background sync every 15s
+        });
+
+        function toggleQueueSidebar() {
+            const sidebar = document.getElementById('queueSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            isSidebarOpen = !isSidebarOpen;
+            
+            if (isSidebarOpen) {
+                sidebar.style.right = '0';
+                overlay.style.display = 'block';
+                setTimeout(() => overlay.style.opacity = '1', 10);
+                refreshQueue();
+            } else {
+                sidebar.style.right = '-480px';
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.style.display = 'none', 400);
+            }
+        }
+
+        function logoutStaff() {
+            localStorage.removeItem('staffUser');
+            localStorage.removeItem('assignedServiceId');
+            window.location.href = 'index.html';
+        }
+
+        async function refreshQueue() {
+            try {
+                const response = await fetch(`${API_BASE}/queue?serviceId=${serviceId}`);
+                if (response.ok) {
+                    const queue = await response.json();
+                    renderQueueCards(queue);
+                }
+            } catch (e) {
+                console.error('Failed to fetch queue', e);
+            }
+        }
+
+        function renderQueueCards(queue) {
+            const container = document.getElementById('queueListContainer');
+            const emptyMsg = document.getElementById('emptyQueueMsg');
+            const countBadge = document.getElementById('queueCount');
+            
+            container.innerHTML = '';
+            countBadge.textContent = `${queue.length} WAITING`;
+
+            if (queue.length === 0) {
+                emptyMsg.style.display = 'block';
+                return;
+            }
+
+            emptyMsg.style.display = 'none';
+            queue.forEach(token => {
+                const card = document.createElement('div');
+                const styles = getPriorityStyles(token.priorityType);
+                
+                card.style.cssText = `
+                    background: rgba(255,255,255,0.02);
+                    border: 1px solid rgba(255,255,255,0.05);
+                    padding: 1.5rem;
+                    border-radius: 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-left: 6px solid ${styles.text};
+                    transition: all 0.3s ease;
+                `;
+                
+                card.innerHTML = `
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight: 900; color: #F8FAFC; margin-bottom: 0.3rem;">${token.tokenNumber}</div>
+                        <div style="font-size: 0.9rem; color: #94A3B8; font-weight: 500;">${token.citizenName}</div>
+                    </div>
+                    <span style="padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.7rem; font-weight: 900; background: ${styles.bg}; color: ${styles.text}; text-transform: uppercase; letter-spacing: 1px;">
+                        ${token.priorityType}
+                    </span>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function getPriorityStyles(type) {
+            switch(type) {
+                case 'Emergency': return { bg: 'rgba(239, 68, 68, 0.15)', text: '#EF4444' };
+                case 'Golden': return { bg: 'rgba(251, 191, 36, 0.15)', text: '#FBBF24' };
+                case 'Senior': return { bg: 'rgba(59, 130, 246, 0.15)', text: '#60A5FA' };
+                default: return { bg: 'rgba(148, 163, 184, 0.1)', text: '#94A3B8' };
+            }
+        }
+
+        function showMessage(msg, isError = false) {
+            const box = document.getElementById('messageBox');
+            box.textContent = msg;
+            box.className = isError ? 'alert alert-error' : 'alert alert-success';
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 5000);
+        }
+
+        async function callNext() {
+            try {
+                const response = await fetch(`${API_BASE}/call-next?serviceId=${serviceId}`, { method: 'POST' });
+                if (response.ok) {
+                    const token = await response.json();
+                    currentTokenId = token.tokenId;
+                    updateUIForCalled(token);
+                    startTimer();
+                    if (isSidebarOpen) refreshQueue();
+                } else {
+                    showMessage('The queue is currently empty.', true);
+                }
+            } catch (e) {
+                showMessage('Network error occurred', true);
+            }
+        }
+
+        async function startServing() {
+            if (!currentTokenId) return;
+            try {
+                const response = await fetch(`${API_BASE}/start-serving?tokenId=${currentTokenId}`, { method: 'POST' });
+                if (response.ok) {
+                    const token = await response.json();
+                    updateUIForServing(token);
+                    stopTimer();
+                } else {
+                    showMessage('Failed to initialize service.', true);
+                }
+            } catch (e) {
+                showMessage('Network error occurred', true);
+            }
+        }
+
+        async function markServed() {
+            if (!currentTokenId) return;
+            try {
+                const response = await fetch(`${API_BASE}/mark-served?tokenId=${currentTokenId}`, { method: 'POST' });
+                if (response.ok) {
+                    updateUIForIdle();
+                    showMessage('Service completed successfully.');
+                    if (isSidebarOpen) refreshQueue();
+                } else {
+                    showMessage('Failed to complete service.', true);
+                }
+            } catch (e) {
+                showMessage('Network error occurred', true);
+            }
+        }
+
+        async function skipToken() {
+            if (!currentTokenId) return;
+            try {
+                const response = await fetch(`${API_BASE}/skip?tokenId=${currentTokenId}`, { method: 'POST' });
+                if (response.ok) {
+                    updateUIForIdle();
+                    showMessage('Token marked as skipped.');
+                    if (isSidebarOpen) refreshQueue();
+                } else {
+                    showMessage('Failed to skip token.', true);
+                }
+            } catch (e) {
+                showMessage('Network error occurred', true);
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            let secondsLeft = 60;
+            const display = document.getElementById('timerDisplay');
+            
+            timerInterval = setInterval(() => {
+                secondsLeft--;
+                const min = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
+                const sec = (secondsLeft % 60).toString().padStart(2, '0');
+                display.textContent = `${min}:${sec}`;
+                
+                if (secondsLeft <= 10) display.style.color = '#EF4444';
+                else if (secondsLeft <= 30) display.style.color = '#F97316';
+
+                if (secondsLeft <= 0) {
+                    clearInterval(timerInterval);
+                    updateUIForIdle();
+                    showMessage('Token timed out (No-Show).', true);
+                    if (isSidebarOpen) refreshQueue();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            document.getElementById('timerContainer').classList.add('hidden');
+        }
+
+        function updateUIForCalled(token) {
+            document.getElementById('currentTokenDisplay').textContent = token.tokenNumber;
+            
+            document.getElementById('citizenInfoBox').style.display = 'block';
+            document.getElementById('citizenNameDisplay').textContent = token.citizenName || 'N/A';
+            document.getElementById('citizenCnicDisplay').textContent = token.citizenCnic || 'N/A';
+            document.getElementById('citizenPhoneDisplay').textContent = (token.citizen && token.citizen.phoneNumber) || 'N/A';
+            
+            const badge = document.getElementById('priorityBadge');
+            const styles = getPriorityStyles(token.priorityType);
+            badge.textContent = token.priorityType;
+            badge.style.background = styles.bg;
+            badge.style.color = styles.text;
+
+            const statusDisp = document.getElementById('tokenStatusDisplay');
+            statusDisp.textContent = 'Status: CALLED';
+            statusDisp.style.color = '#FBBF24';
+            statusDisp.style.background = 'rgba(251, 191, 36, 0.1)';
+
+            document.getElementById('btnCallNext').classList.add('hidden');
+            document.getElementById('btnServe').classList.remove('hidden');
+            document.getElementById('btnServed').classList.add('hidden');
+            document.getElementById('btnSkip').classList.remove('hidden');
+            
+            const timer = document.getElementById('timerContainer');
+            timer.classList.remove('hidden');
+            document.getElementById('timerDisplay').style.color = '#EF4444';
+            document.getElementById('timerDisplay').textContent = '01:00';
+        }
+
+        function updateUIForServing(token) {
+            const statusDisp = document.getElementById('tokenStatusDisplay');
+            statusDisp.textContent = 'Status: SERVING';
+            statusDisp.style.color = '#10B981';
+            statusDisp.style.background = 'rgba(16, 185, 129, 0.1)';
+
+            document.getElementById('btnCallNext').classList.add('hidden');
+            document.getElementById('btnServe').classList.add('hidden');
+            document.getElementById('btnServed').classList.remove('hidden');
+            document.getElementById('btnSkip').classList.add('hidden');
+        }
+
+        function updateUIForIdle() {
+            currentTokenId = null;
+            stopTimer();
+
+            document.getElementById('currentTokenDisplay').textContent = '----';
+            document.getElementById('citizenInfoBox').style.display = 'none';
+            
+            const statusDisp = document.getElementById('tokenStatusDisplay');
+            statusDisp.textContent = 'Status: IDLE';
+            statusDisp.style.color = '#94A3B8';
+            statusDisp.style.background = 'rgba(148, 163, 184, 0.1)';
+
+            document.getElementById('btnCallNext').classList.remove('hidden');
+            document.getElementById('btnServe').classList.add('hidden');
+            document.getElementById('btnServed').classList.add('hidden');
+            document.getElementById('btnSkip').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

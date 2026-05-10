@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaitWise - Admin Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles-v2.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a, #1e293b); color: #f8fafc; display: flex; flex-direction: row; height: 100vh; min-height: unset; overflow: hidden; }
+        body::before, body::after { display: none !important; }
+        .sidebar { width: 260px; background: rgba(15,23,42,0.8); backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.1); padding: 2rem; display: flex; flex-direction: column; box-shadow: 4px 0 24px rgba(0,0,0,0.2); }
+        .sidebar h2 { font-size: 1.5rem; background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 2rem; }
+        .nav-item { padding: 1rem 1.5rem; margin-bottom: 0.5rem; border-radius: 12px; cursor: pointer; transition: all 0.3s; color: #cbd5e1; font-weight: 500; }
+        .nav-item:hover, .nav-item.active { background: rgba(56,189,248,0.1); color: #38bdf8; transform: translateX(5px); }
+        .main-content { flex: 1; padding: 2rem 3rem; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 2rem; font-weight: 600; }
+
+        .widgets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .widget { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 1.5rem; transition: transform 0.3s, box-shadow 0.3s; }
+        .widget:hover { transform: translateY(-5px); background: rgba(255,255,255,0.05); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .widget-title { color: #94a3b8; font-size: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .widget-value { font-size: 2.5rem; font-weight: 700; }
+        .widget-accent-blue { border-left: 4px solid #38bdf8; }
+        .widget-accent-green { border-left: 4px solid #34d399; }
+        .widget-accent-red { border-left: 4px solid #f87171; }
+        .widget-accent-gold { border-left: 4px solid #fbbf24; }
+        .widget-accent-purple { border-left: 4px solid #a78bfa; }
+        .admin-section { display: none; animation: fadeIn 0.4s ease-out forwards; }
+        .admin-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .data-table-container { background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; margin-bottom: 2rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.85rem 1.2rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        th { background: rgba(0,0,0,0.2); font-weight: 600; color: #cbd5e1; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        .badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-danger { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+        .badge-info { background: rgba(56,189,248,0.2); color: #bae6fd; border: 1px solid rgba(56,189,248,0.3); }
+        .btn-primary { background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(56,189,248,0.4); }
+        .btn-danger { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .btn-danger:hover { background: #ef4444; color: white; }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; margin-bottom: 0.4rem; color: #94a3b8; font-size: 0.85rem; }
+        .form-control { width: 100%; padding: 0.65rem 0.9rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; font-family: inherit; box-sizing: border-box; font-size: 0.9rem; }
+        .form-control:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 0 2px rgba(56,189,248,0.2); }
+        .form-row { display: flex; gap: 1rem; align-items: flex-end; }
+        .chart-container { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 1.5rem; margin-top: 2rem; height: 400px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
+        .modal.hidden { display: none; }
+        .modal-content { max-width: 800px; width: 90%; max-height: 85vh; overflow-y: auto; background: rgba(15,23,42,0.97); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; position: relative; }
+        .btn-action { padding: 0.35rem 0.6rem; border-radius: 6px; cursor: pointer; border: none; font-size: 0.8rem; margin-right: 0.3rem; transition: all 0.2s; }
+        .btn-view { background: rgba(56,189,248,0.15); color: #38bdf8; }
+        .btn-view:hover { background: #38bdf8; color: white; }
+        .btn-edit { background: rgba(251,191,36,0.15); color: #fbbf24; }
+        .btn-edit:hover { background: #fbbf24; color: #1e293b; }
+        .btn-del { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .btn-del:hover { background: #ef4444; color: white; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+        .detail-item label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+        .detail-item .val { font-size: 1rem; color: #f8fafc; font-weight: 500; margin-top: 0.3rem; }
+        .password-field { display: flex; align-items: center; gap: 0.5rem; }
+        .password-field .val { filter: blur(5px); font-family: monospace; }
+        .btn-icon { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.85rem; }
+        .btn-icon:hover { color: #38bdf8; }
+        .cred-box { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); border-radius: 12px; padding: 1.5rem; margin: 1rem 0; text-align: center; }
+        .cred-box .cred-val { font-size: 1.3rem; font-weight: 700; color: #f8fafc; font-family: monospace; margin: 0.3rem 0; }
+        .alert-msg { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; display: none; }
+        .alert-error { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+        .alert-success { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>WaitWise Admin</h2>
+        <div class="nav-item active" onclick="switchTab('dashboard')"><i class="fas fa-chart-line" style="margin-right:0.75rem;"></i>Dashboard</div>
+        <div class="nav-item" onclick="switchTab('reports')"><i class="fas fa-file-alt" style="margin-right:0.75rem;"></i>Reports</div>
+        <div class="nav-item" onclick="switchTab('monitoring')"><i class="fas fa-chart-bar" style="margin-right:0.75rem;"></i>Service Monitoring</div>
+        <div class="nav-item" onclick="switchTab('performance')"><i class="fas fa-user-check" style="margin-right:0.75rem;"></i>Staff Performance</div>
+        <div class="nav-item" onclick="switchTab('staff')"><i class="fas fa-users-cog" style="margin-right:0.75rem;"></i>Staff Management</div>
+        <div class="nav-item" onclick="switchTab('financial')"><i class="fas fa-coins" style="margin-right:0.75rem;"></i>Financial Audit</div>
+        <div class="nav-item" onclick="switchTab('blacklist')"><i class="fas fa-ban" style="margin-right:0.75rem;"></i>Blacklisted Citizens</div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1 id="page-title">Dashboard Overview</h1>
+            <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="admin-section active">
+            <div class="widgets-grid">
+                <div class="widget widget-accent-blue" onclick="openReport('generated')" style="cursor:pointer;"><div class="widget-title">Tokens Generated Today</div><div class="widget-value" id="val-generated">-</div></div>
+                <div class="widget widget-accent-green" onclick="openReport('served')" style="cursor:pointer;"><div class="widget-title">Tokens Served Today</div><div class="widget-value" id="val-served">-</div></div>
+                <div class="widget widget-accent-red" onclick="openReport('expired')" style="cursor:pointer;"><div class="widget-title">Tokens Expired Today</div><div class="widget-value" id="val-expired">-</div></div>
+                <div class="widget" style="border-left:4px solid #f97316;cursor:pointer;" onclick="openReport('cancelled')"><div class="widget-title">Cancelled Today</div><div class="widget-value" id="val-cancelled">-</div></div>
+                <div class="widget widget-accent-gold" onclick="openReport('revenue')" style="cursor:pointer;"><div class="widget-title">Total Revenue (PKR)</div><div class="widget-value" id="val-revenue">-</div></div>
+            </div>
+            <div class="chart-container"><canvas id="serviceChart"></canvas></div>
+        </div>
+
+        <!-- MODULE 2: Daily Service Reports (GUI) -->
+        <div id="reports" class="admin-section">
+            <div class="data-table-container" style="padding:1.5rem;margin-bottom:2rem;">
+                <h3 style="margin:0 0 1rem 0;color:#f8fafc;"><i class="fas fa-calendar-day" style="margin-right:0.5rem;color:#38bdf8;"></i>Daily Service Report</h3>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;"><label>Select Date</label><input type="date" id="report-date" class="form-control"></div>
+                    <div class="form-group" style="display:flex;align-items:flex-end;"><button class="btn-primary" style="height:42px;padding:0 1.5rem;" onclick="generateDailyReport()"><i class="fas fa-search" style="margin-right:0.4rem;"></i>Generate</button></div>
+                </div>
+            </div>
+            <div id="report-no-data" class="alert-msg alert-error" style="display:none;text-align:center;font-size:1rem;padding:1.5rem;">No records found for this date</div>
+            <div id="report-results" style="display:none;">
+                <div class="widgets-grid">
+                    <div class="widget widget-accent-blue"><div class="widget-title">Total Tokens</div><div class="widget-value" id="rpt-total">0</div></div>
+                    <div class="widget widget-accent-green"><div class="widget-title">Served Tokens</div><div class="widget-value" id="rpt-served">0</div></div>
+                    <div class="widget widget-accent-red"><div class="widget-title">Expired Tokens</div><div class="widget-value" id="rpt-expired">0</div></div>
+                    <div class="widget" style="border-left:4px solid #f97316;"><div class="widget-title">Cancelled Tokens</div><div class="widget-value" id="rpt-cancelled">0</div></div>
+                </div>
+                <div class="chart-container" style="margin-top:1.5rem;"><canvas id="dailyReportChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- MODULE 3: Service Monitoring -->
+        <div id="monitoring" class="admin-section">
+            <div class="data-table-container" style="padding:1.5rem;margin-bottom:2rem;">
+                <h3 style="margin:0 0 1rem 0;color:#f8fafc;"><i class="fas fa-chart-area" style="margin-right:0.5rem;color:#a78bfa;"></i>Monitor Service Usage</h3>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;"><label>Select Time Period</label>
+                        <select id="monitor-period" class="form-control" onchange="loadServiceMonitoring()">
+                            <option value="week">This Week</option>
+                            <option value="month" selected>This Month</option>
+                            <option value="3months">Last 3 Months</option>
+                            <option value="6months">Last 6 Months</option>
+                            <option value="year">This Year</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div id="monitor-error" class="alert-msg alert-error" style="display:none;text-align:center;">Error loading data</div>
+            <div id="busiest-card" class="data-table-container" style="padding:1.5rem;margin-bottom:1.5rem;display:none;">
+                <div style="display:flex;align-items:center;gap:1rem;"><i class="fas fa-fire" style="font-size:2rem;color:#f97316;"></i><div><div style="color:#94a3b8;font-size:0.8rem;text-transform:uppercase;">Busiest Service</div><div id="busiest-name" style="font-size:1.5rem;font-weight:700;color:#f8fafc;"></div><div id="busiest-count" style="color:#38bdf8;font-size:0.9rem;"></div></div></div>
+            </div>
+            <div class="chart-container"><canvas id="monitorChart"></canvas></div>
+        </div>
+
+        <!-- MODULE 4: Staff Performance -->
+        <div id="performance" class="admin-section">
+            <div class="data-table-container" style="padding:1.5rem;margin-bottom:2rem;">
+                <h3 style="margin:0 0 1rem 0;color:#f8fafc;"><i class="fas fa-tachometer-alt" style="margin-right:0.5rem;color:#34d399;"></i>Evaluate Staff Performance</h3>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;"><label>Select Staff Member</label><select id="perf-staff" class="form-control"><option value="">-- Select Staff --</option></select></div>
+                    <div class="form-group" style="display:flex;align-items:flex-end;"><button class="btn-primary" style="height:42px;padding:0 1.5rem;" onclick="loadStaffPerformance()"><i class="fas fa-chart-pie" style="margin-right:0.4rem;"></i>Evaluate</button></div>
+                </div>
+            </div>
+            <div id="perf-no-data" class="alert-msg alert-error" style="display:none;text-align:center;font-size:1rem;padding:1.5rem;">Not enough data</div>
+            <div id="perf-results" style="display:none;">
+                <div style="text-align:center;margin-bottom:1.5rem;"><span style="font-size:1.2rem;color:#94a3b8;">Performance for </span><span id="perf-name" style="font-size:1.2rem;font-weight:700;color:#38bdf8;"></span></div>
+                <div class="widgets-grid">
+                    <div class="widget widget-accent-green"><div class="widget-title">Tokens Served</div><div class="widget-value" id="perf-served">0</div></div>
+                    <div class="widget widget-accent-blue"><div class="widget-title">Avg Service Time (min)</div><div class="widget-value" id="perf-avg">0</div></div>
+                    <div class="widget widget-accent-red"><div class="widget-title">No-Show Count</div><div class="widget-value" id="perf-noshow">0</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODULE 6: Financial Audit -->
+        <div id="financial" class="admin-section">
+            <div class="data-table-container" style="padding:1.5rem;margin-bottom:2rem;">
+                <h3 style="margin:0 0 1rem 0;color:#f8fafc;"><i class="fas fa-money-check-alt" style="margin-right:0.5rem;color:#fbbf24;"></i>Financial Throughput Audit</h3>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;"><label>Start Date</label><input type="date" id="fin-start" class="form-control"></div>
+                    <div class="form-group" style="flex:1;"><label>End Date</label><input type="date" id="fin-end" class="form-control"></div>
+                    <div class="form-group" style="display:flex;align-items:flex-end;gap:0.5rem;">
+                        <button class="btn-primary" style="height:42px;padding:0 1.5rem;" onclick="generateFinancialReport()"><i class="fas fa-search" style="margin-right:0.4rem;"></i>Generate</button>
+                        <button id="btn-export-pdf" class="btn-primary" style="height:42px;padding:0 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:none;" onclick="exportFinancialPDF()"><i class="fas fa-file-pdf" style="margin-right:0.4rem;"></i>Export PDF</button>
+                    </div>
+                </div>
+            </div>
+            <div id="fin-no-data" class="alert-msg alert-error" style="display:none;text-align:center;font-size:1rem;padding:1.5rem;">No records found</div>
+            <div id="fin-results" style="display:none;">
+                <div class="widgets-grid">
+                    <div class="widget widget-accent-gold"><div class="widget-title">Total Tickets Sold</div><div class="widget-value" id="fin-sold">0</div></div>
+                    <div class="widget widget-accent-green"><div class="widget-title">Total Revenue (PKR)</div><div class="widget-value" id="fin-revenue">0</div></div>
+                </div>
+                <div class="data-table-container" style="margin-top:1.5rem;" id="fin-table-wrap">
+                    <table id="fin-table"><thead><tr><th>Service</th><th>Citizen</th><th>Amount (PKR)</th><th>Transaction Time</th></tr></thead><tbody></tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Management Section -->
+        <div id="staff" class="admin-section">
+            <!-- Staff Stats -->
+            <div class="widgets-grid" style="margin-bottom:2rem;">
+                <div class="widget widget-accent-blue"><div class="widget-title">Total Staff</div><div class="widget-value" id="stat-total">0</div></div>
+                <div class="widget widget-accent-green"><div class="widget-title">Counter Staff</div><div class="widget-value" id="stat-counter">0</div></div>
+                <div class="widget widget-accent-gold"><div class="widget-title">Reception Staff</div><div class="widget-value" id="stat-reception">0</div></div>
+                <div class="widget widget-accent-purple"><div class="widget-title">Active Staff</div><div class="widget-value" id="stat-active">0</div></div>
+            </div>
+
+            <!-- Hire Staff Section (Collapsible) -->
+            <div style="margin-bottom: 1.5rem; display: flex; justify-content: flex-end;">
+                <button onclick="toggleStaffForm()" class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 0.6rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                    <i class="fas fa-plus-circle"></i> Hire New Staff Member
+                </button>
+            </div>
+
+            <div id="staff-form-container" style="max-height: 0; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 0;">
+                <div class="data-table-container" style="padding:1.5rem; border-top: 4px solid #38bdf8; margin-bottom: 2rem;">
+                    <h3 style="margin:0 0 0.3rem 0; color:#f8fafc; font-weight:600;"><i class="fas fa-user-plus" style="margin-right:0.5rem; color:#38bdf8;"></i>Hire New Staff</h3>
+                    <p style="color:#94a3b8; font-size:0.8rem; margin-bottom:1.2rem;">Create login credentials and assign staff to a role. Admin generates the password.</p>
+                    <div id="staff-error" class="alert-msg alert-error"></div>
+                    <div id="staff-success" class="alert-msg alert-success"></div>
+                    <form id="staff-form" onsubmit="createStaff(event)">
+                        <div class="form-row">
+                            <div class="form-group" style="flex:1;"><label>Full Name *</label><input type="text" id="staff-name" class="form-control" placeholder="e.g. Ahmed Khan" required></div>
+                            <div class="form-group" style="flex:1;"><label>Username *</label><input type="text" id="staff-username" class="form-control" placeholder="e.g. ahmed.counter1" required></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="flex:1;">
+                                <label>Password *</label>
+                                <div style="display:flex;gap:0.5rem;">
+                                    <input type="password" id="staff-password" class="form-control" placeholder="Min 4 chars" required>
+                                    <button type="button" onclick="generatePassword()" class="btn-primary" style="white-space:nowrap;padding:0 1rem;font-size:0.8rem;" title="Auto-generate a secure password"><i class="fas fa-key"></i> Generate</button>
+                                </div>
+                            </div>
+                            <div class="form-group" style="flex:1;"><label>Phone Number</label><input type="text" id="staff-phone" class="form-control" placeholder="e.g. 03001234567"></div>
+                            <div class="form-group" style="flex:1;"><label>Email</label><input type="email" id="staff-email" class="form-control" placeholder="e.g. ahmed@mail.com"></div>
+                        </div>
+                        <div class="form-row" style="margin-top:0.5rem;">
+                            <div class="form-group" style="flex:1;">
+                                <label>Assign Role *</label>
+                                <select id="staff-role" class="form-control" required onchange="toggleCounterSelect()">
+                                    <option value="CounterStaff">Counter Staff</option>
+                                    <option value="ReceptionStaff">Reception Staff</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex:1;" id="counter-select-group">
+                                <label>Assign to Counter *</label>
+                                <select id="staff-counter" class="form-control" required>
+                                    <option value="1">Counter 1 — CNIC Renewal</option>
+                                    <option value="2">Counter 2 — Passport</option>
+                                    <option value="3">Counter 3 — FRC Document</option>
+                                    <option value="4">Counter 4 — Domicile</option>
+                                    <option value="5">Counter 5 — Birth Certificate</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="display:flex;align-items:flex-end;">
+                                <button type="submit" class="btn-primary" style="height:42px;white-space:nowrap;padding:0 1.5rem;"><i class="fas fa-user-plus" style="margin-right:0.4rem;"></i>Hire Staff</button>
+                                <button type="button" onclick="toggleStaffForm()" class="btn-danger" style="height:42px;margin-left:0.5rem;padding:0 1rem;background:rgba(255,255,255,0.05);color:#cbd5e1;border:1px solid rgba(255,255,255,0.1);"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                function toggleStaffForm() {
+                    const container = document.getElementById('staff-form-container');
+                    if (container.style.maxHeight === '0px' || !container.style.maxHeight) {
+                        container.style.maxHeight = '1000px';
+                        container.style.marginBottom = '2rem';
+                    } else {
+                        container.style.maxHeight = '0px';
+                        container.style.marginBottom = '0';
+                    }
+                }
+            </script>
+
+            <!-- Staff Table -->
+            <div class="data-table-container">
+                <table id="staff-table">
+                    <thead><tr><th>ID</th><th>Name</th><th>Username</th><th>Role</th><th>Assignment</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Blacklist Section -->
+        <div id="blacklist" class="admin-section">
+            <div class="data-table-container">
+                <table id="blacklist-table">
+                    <thead><tr><th>CNIC</th><th>Full Name</th><th>Phone Number</th><th>No-Show Count</th><th>Status</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal hidden">
+        <div class="modal-content">
+            <button class="btn-danger" style="position:absolute;top:1rem;right:1rem;" onclick="closeReport()">Close</button>
+            <h2 id="modalTitle" style="margin-top:0;">Report Details</h2>
+            <div class="data-table-container" style="margin-top:1.5rem;">
+                <table id="report-table"><thead><tr id="report-table-head"></tr></thead><tbody id="report-table-body"></tbody></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credentials Created Modal -->
+    <div id="credentialsModal" class="modal hidden">
+        <div class="modal-content" style="max-width:500px;text-align:center;">
+            <div style="font-size:3rem;color:#34d399;margin-bottom:1rem;"><i class="fas fa-check-circle"></i></div>
+            <h2 style="margin:0 0 0.5rem 0;color:#f8fafc;">Staff Account Created!</h2>
+            <p style="color:#94a3b8;font-size:0.9rem;margin-bottom:1.5rem;">Share these credentials with the staff member. They will use them to login.</p>
+            <div class="cred-box">
+                <div style="margin-bottom:1rem;"><label style="font-size:0.7rem;color:#64748b;text-transform:uppercase;">Name</label><div class="cred-val" id="cred-name"></div></div>
+                <div style="display:flex;gap:2rem;justify-content:center;">
+                    <div><label style="font-size:0.7rem;color:#64748b;text-transform:uppercase;">Username</label><div class="cred-val" style="color:#38bdf8;" id="cred-username"></div></div>
+                    <div><label style="font-size:0.7rem;color:#64748b;text-transform:uppercase;">Password</label><div class="cred-val" style="color:#fbbf24;" id="cred-password"></div></div>
+                </div>
+                <div style="margin-top:1rem;"><label style="font-size:0.7rem;color:#64748b;text-transform:uppercase;">Assigned To</label><div style="color:#cbd5e1;font-weight:500;margin-top:0.3rem;" id="cred-role"></div><div style="color:#94a3b8;font-size:0.85rem;" id="cred-assignment"></div></div>
+            </div>
+            <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+                <button id="btn-copy-cred" onclick="copyCredentials()" class="btn-primary" style="flex:1;padding:0.75rem;"><i class="fas fa-copy"></i> Copy Credentials</button>
+                <button onclick="closeCredentialsModal()" style="flex:1;padding:0.75rem;background:rgba(255,255,255,0.05);color:#cbd5e1;border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Detail Modal -->
+    <div id="detailModal" class="modal hidden">
+        <div class="modal-content" style="max-width:550px;">
+            <button class="btn-danger" style="position:absolute;top:1rem;right:1rem;" onclick="closeDetailModal()">Close</button>
+            <h2 style="margin:0 0 0.5rem 0;"><i class="fas fa-id-card" style="margin-right:0.5rem;color:#38bdf8;"></i>Staff Details</h2>
+            <div class="detail-grid">
+                <div class="detail-item"><label>Full Name</label><div class="val" id="detail-name"></div></div>
+                <div class="detail-item"><label>Username</label><div class="val" style="font-family:monospace;color:#60a5fa;" id="detail-username"></div></div>
+                <div class="detail-item"><label>Password</label><div class="password-field"><span class="val" id="detail-password" style="filter:blur(5px);font-family:monospace;"></span><button class="btn-icon" onclick="togglePasswordVisibility('detail-password', this)"><i class="fas fa-eye"></i></button></div></div>
+                <div class="detail-item"><label>Role</label><div class="val" id="detail-role"></div></div>
+                <div class="detail-item"><label>Assignment</label><div class="val" id="detail-assignment"></div></div>
+                <div class="detail-item"><label>Status</label><div class="val" id="detail-status"></div></div>
+                <div class="detail-item"><label>Phone Number</label><div class="val" id="detail-phone"></div></div>
+                <div class="detail-item"><label>Email</label><div class="val" id="detail-email"></div></div>
+                <div class="detail-item" style="grid-column:span 2;"><label>Hired On</label><div class="val" id="detail-created"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Staff Modal -->
+    <div id="editModal" class="modal hidden">
+        <div class="modal-content" style="max-width:550px;">
+            <button class="btn-danger" style="position:absolute;top:1rem;right:1rem;" onclick="closeEditModal()">Close</button>
+            <h2 style="margin:0 0 1rem 0;"><i class="fas fa-edit" style="margin-right:0.5rem;color:#fbbf24;"></i>Edit Staff</h2>
+            <form onsubmit="saveStaffEdit(event)">
+                <input type="hidden" id="edit-id">
+                <div class="form-group"><label>Full Name</label><input type="text" id="edit-name" class="form-control" required></div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;"><label>Phone</label><input type="text" id="edit-phone" class="form-control"></div>
+                    <div class="form-group" style="flex:1;"><label>Email</label><input type="email" id="edit-email" class="form-control"></div>
+                </div>
+                <div class="form-group">
+                    <label>New Password (leave blank to keep current)</label>
+                    <div style="display:flex;gap:0.5rem;">
+                        <input type="password" id="edit-password" class="form-control" placeholder="Leave blank to keep current">
+                        <button type="button" onclick="generateEditPassword()" class="btn-primary" style="white-space:nowrap;padding:0 1rem;font-size:0.8rem;"><i class="fas fa-key"></i> Generate</button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label>Role</label>
+                        <select id="edit-role" class="form-control" onchange="toggleEditCounter()">
+                            <option value="CounterStaff">Counter Staff</option>
+                            <option value="ReceptionStaff">Reception Staff</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1;" id="edit-counter-group">
+                        <label>Counter</label>
+                        <select id="edit-counter" class="form-control">
+                            <option value="1">Counter 1 — CNIC Renewal</option>
+                            <option value="2">Counter 2 — Passport</option>
+                            <option value="3">Counter 3 — FRC Document</option>
+                            <option value="4">Counter 4 — Domicile</option>
+                            <option value="5">Counter 5 — Birth Certificate</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="edit-active" class="form-control">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive (Deactivated)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%;padding:0.75rem;margin-top:0.5rem;font-size:1rem;"><i class="fas fa-save" style="margin-right:0.5rem;"></i>Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>

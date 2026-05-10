@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaitWise - Create Citizen Account</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles-v2.css">
+</head>
+<body class="grid-bg">
+
+    <div id="globalLoader" class="loader-container hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Container for back button and main card -->
+    <div style="max-width: 650px; margin: 1rem auto; padding: 0 1rem;">
+        
+        <a href="roles.html" class="back-link" style="color: #94A3B8; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; transition: color 0.2s;">
+            <i class="fas fa-arrow-left"></i> Back to roles
+        </a>
+
+        <div class="reg-card">
+            
+            <!-- Progress Stepper -->
+            <div class="stepper">
+                <div class="step active">
+                    <div class="circle">1</div>
+                    <span>Account</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="circle">2</div>
+                    <span>Details</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="circle">3</div>
+                    <span>Done</span>
+                </div>
+            </div>
+
+            <h1 class="reg-title">Create Account</h1>
+            <p class="reg-subtitle">Register to access NADRA queue services online</p>
+
+            <div id="registerError" class="alert alert-error hidden" style="margin-bottom: 2rem;"></div>
+
+            <form onsubmit="registerCitizen(event)" class="reg-form">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>FIRST NAME</label>
+                        <input type="text" id="firstName" placeholder="Muhammad" required>
+                    </div>
+                    <div class="form-group">
+                        <label>LAST NAME</label>
+                        <input type="text" id="lastName" placeholder="Ali" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>CNIC NUMBER</label>
+                    <input type="text" id="cnic" placeholder="XXXXX-XXXXXXX-X" required pattern="\d{5}-\d{7}-\d{1}" title="Please enter 13 digit CNIC with dashes (e.g., 12345-1234567-1)" maxlength="15">
+                </div>
+
+                <div class="form-group">
+                    <label>PHONE NUMBER</label>
+                    <input type="tel" id="phoneNumber" placeholder="03XX-XXXXXXX" required maxlength="11">
+                </div>
+                
+                <div class="form-group">
+                    <label>EMAIL ADDRESS</label>
+                    <input type="email" id="email" placeholder="example@mail.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>DATE OF BIRTH</label>
+                    <input type="date" id="dateOfBirth" required max="2015-12-31" style="color-scheme: dark;">
+                </div>
+
+                <div class="form-group">
+                    <label>PASSWORD</label>
+                    <div class="input-icon-wrapper">
+                        <input type="password" id="password" placeholder="Min 8 characters" required minlength="8">
+                        <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility('password', this)"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>CONFIRM PASSWORD</label>
+                    <div class="input-icon-wrapper">
+                        <input type="password" id="confirmPassword" placeholder="Repeat password" required>
+                        <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility('confirmPassword', this)"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-gold-wide mt-4">Continue &rarr;</button>
+            </form>
+
+        </div>
+
+        <div class="text-center mt-4" style="margin-bottom: 3rem;">
+            <p style="color: #94A3B8; font-size: 0.9rem;">Already have an account? <a href="citizen-login.html" style="color: #FBBF24; text-decoration: none; font-weight: 500;">Sign In</a></p>
+        </div>
+    </div>
+
+    <script src="js/app.js?v=3.5"></script>
+</body>
+</html>

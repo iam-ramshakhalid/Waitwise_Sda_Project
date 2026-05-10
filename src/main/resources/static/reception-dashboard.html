@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaitWise - Reception Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles-v2.css">
+    <style>
+        .queue-bar {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1rem 2rem;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-x: auto;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .queue-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+            min-width: 180px;
+        }
+        .queue-item .name { font-size: 0.8rem; color: #94A3B8; margin-bottom: 0.25rem; }
+        .queue-item .count { font-size: 1.25rem; font-weight: 700; color: #F8FAFC; }
+        .queue-item .wait { font-size: 0.75rem; color: #60A5FA; }
+
+        .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; }
+        .tab { 
+            padding: 0.75rem 1.5rem; 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #94A3B8;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            background: var(--accent-orange);
+            color: white;
+            border-color: var(--accent-orange);
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printableToken, #printableToken * { visibility: visible; }
+            #printableToken { position: absolute; left: 0; top: 0; width: 100%; text-align: center; color: black !important; background: white !important; padding: 20px; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Live Queue Bar -->
+    <div class="queue-bar" id="liveQueueBar">
+        <!-- Loaded via JS -->
+    </div>
+
+    <nav style="display: flex; justify-content: space-between; align-items: center; padding: 0 2rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 2rem;">
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-orange);">
+            WaitWise <span style="color: var(--text-secondary); font-size: 1rem; font-weight: 500;">| Reception Portal</span>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <button onclick="logoutStaff()" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </nav>
+
+    <div style="max-width: 1000px; margin: 0 auto; padding: 0 2rem;">
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('issue')"><i class="fas fa-ticket-alt"></i> Issue Token</div>
+            <div class="tab" onclick="switchTab('escalate')"><i class="fas fa-bolt"></i> Emergency Bar</div>
+        </div>
+
+        <!-- Tab 1: Issue Token -->
+        <div id="issueSection" class="tab-content">
+            <div class="glass-container" style="max-width: 600px; margin: 0 auto;">
+                <h2 class="title">Issue Token</h2>
+                <div id="issueMsg" class="alert hidden"></div>
+                <form onsubmit="issueToken(event)">
+                    <div class="form-group">
+                        <label class="form-label">Select Service</label>
+                        <select id="serviceSelect" class="form-control" required>
+                            <option value="1">CNIC Renewal (Counter 1)</option>
+                            <option value="2">New Passport (Counter 2)</option>
+                            <option value="3">FRC Document (Counter 3)</option>
+                            <option value="4">Domicile (Counter 4)</option>
+                            <option value="5">Birth Certificate (Counter 5)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Citizen CNIC (Optional)</label>
+                        <input type="text" id="cnicInput" class="form-control" placeholder="XXXXX-XXXXXXX-X">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priority Level</label>
+                        <select id="prioritySelect" class="form-control">
+                            <option value="Normal">Normal</option>
+                            <option value="Senior">Senior Citizen</option>
+                            <option value="Emergency">Emergency</option>
+                            <option value="Golden">Golden (Paid)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-4" style="width: 100%;">Generate Token</button>
+                </form>
+
+                <div id="tokenResult" class="hidden" style="margin-top: 2rem; padding: 1.5rem; background: rgba(52, 211, 153, 0.1); border: 1px dotted #34D399; border-radius: 12px; text-align: center;">
+                    <div id="printableToken">
+                        <h3 style="color: #34D399; margin-bottom: 0.5rem;">WAITWISE TOKEN</h3>
+                        <div id="resTokenNumber" style="font-size: 3.5rem; font-weight: 800; color: #F8FAFC;"></div>
+                        <p id="resServiceName" style="color: var(--text-secondary); margin-bottom: 1rem;"></p>
+                    </div>
+                    <button onclick="window.print()" class="btn btn-outline no-print" style="width: 100%;">
+                        <i class="fas fa-print"></i> Print Token
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Tab 3: Emergency Bar -->
+        <div id="escalateSection" class="tab-content hidden">
+            <div class="glass-container" style="max-width: 800px; margin: 0 auto;">
+                <h2 class="title" style="color: #EF4444;"><i class="fas fa-exclamation-circle"></i> Emergency Escalation Bar</h2>
+                <div class="form-group">
+                    <label class="form-label">Filter by Service</label>
+                    <select id="escServiceSelect" class="form-control" onchange="loadEscalationList()">
+                        <option value="1">CNIC Renewal</option>
+                        <option value="2">Passport</option>
+                        <option value="3">FRC</option>
+                        <option value="4">Domicile</option>
+                        <option value="5">Birth Certificate</option>
+                    </select>
+                </div>
+                <div id="escMsg" class="alert hidden"></div>
+                <div style="overflow-x: auto; margin-top: 1.5rem;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <th style="padding: 1rem; text-align: left; color: #94A3B8;">TOKEN</th>
+                                <th style="padding: 1rem; text-align: left; color: #94A3B8;">PRIORITY</th>
+                                <th style="padding: 1rem; text-align: left; color: #94A3B8;">CITIZEN</th>
+                                <th style="padding: 1rem; text-align: center; color: #94A3B8;">ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody id="escTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API = 'http://localhost:8081/api/reception';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const staff = JSON.parse(localStorage.getItem('staffUser'));
+            if (!staff || staff.role !== 'ReceptionStaff') {
+                window.location.href = 'staff-login.html';
+            }
+            
+            loadQueueSummary();
+            setInterval(loadQueueSummary, 10000); // Refresh every 10s
+        });
+
+        async function loadQueueSummary() {
+            try {
+                const res = await fetch(`${API}/queue-summary`);
+                const data = await res.json();
+                const bar = document.getElementById('liveQueueBar');
+                bar.innerHTML = data.map(s => `
+                    <div class="queue-item">
+                        <div class="name">${s.serviceName}</div>
+                        <div class="count">${s.waitingCount} <small style="font-weight:400; font-size: 0.7rem; color: #94A3B8;">Waiting</small></div>
+                        <div class="wait"><i class="far fa-clock"></i> ~${s.waitingCount * s.avgWait} mins</div>
+                    </div>
+                `).join('');
+            } catch (e) { console.error('Queue Bar Error:', e); }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`${tabId}Section`).classList.remove('hidden');
+            event.target.closest('.tab').classList.add('active');
+            
+            if (tabId === 'escalate') loadEscalationList();
+        }
+
+        async function issueToken(e) {
+            e.preventDefault();
+            const sid = document.getElementById('serviceSelect').value;
+            const cnic = document.getElementById('cnicInput').value;
+            const priority = document.getElementById('prioritySelect').value;
+            
+            try {
+                const res = await fetch(`${API}/issue-token?serviceId=${sid}&priority=${priority}&cnic=${cnic}`, { method: 'POST' });
+                if (res.ok) {
+                    const token = await res.json();
+                    document.getElementById('resTokenNumber').textContent = token.tokenNumber;
+                    document.getElementById('resServiceName').textContent = document.querySelector(`#serviceSelect option[value="${sid}"]`).textContent;
+                    document.getElementById('tokenResult').classList.remove('hidden');
+                    loadQueueSummary();
+                } else {
+                    const err = await res.json();
+                    alert(err.message || 'Failed to issue token');
+                }
+            } catch (e) { alert('Network Error'); }
+        }
+
+
+        async function loadEscalationList() {
+            const sid = document.getElementById('escServiceSelect').value;
+            try {
+                const res = await fetch(`${API}/active-tokens?serviceId=${sid}`);
+                const tokens = await res.json();
+                const tbody = document.getElementById('escTableBody');
+                tbody.innerHTML = tokens.map(t => `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 1rem; font-weight: 700;">${t.tokenNumber}</td>
+                        <td style="padding: 1rem; color: ${t.priorityType === 'Emergency' ? '#EF4444' : '#94A3B8'};">${t.priorityType}</td>
+                        <td style="padding: 1rem;">${t.citizenName} <br><small style="color: #64748b;">${t.citizenCnic}</small></td>
+                        <td style="padding: 1rem; text-align: center;">
+                            <button onclick="escalate(${t.tokenId})" class="btn" style="padding: 0.5rem 1rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid #EF4444;">ESCALATE</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        async function escalate(tid) {
+            if (!confirm('Push this token to the front of the queue?')) return;
+            try {
+                const res = await fetch(`${API}/escalate?tokenId=${tid}`, { method: 'POST' });
+                const data = await res.json();
+                alert(data.message);
+                loadEscalationList();
+                loadQueueSummary();
+            } catch (e) { alert('Escalation failed'); }
+        }
+
+        function logoutStaff() {
+            localStorage.removeItem('staffUser');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
+
