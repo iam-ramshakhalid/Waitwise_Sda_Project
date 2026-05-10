@@ -68,7 +68,7 @@
     <!-- Main Content Area -->
     <main class="dash-content">
         
-        <!-- ================= DASHBOARD TAB ================= -->
+        <!-- Dashboard -->
         <section id="tab-dashboard" class="tab-pane active">
             <h1 class="dash-title">Welcome, <span id="dashUserName">Citizen</span>!</h1>
             <p class="dash-subtitle">Here is an overview of your token queue status.</p>
@@ -115,14 +115,13 @@
                             </tr>
                         </thead>
                         <tbody id="recentTokenTableBody">
-                            <!-- Populated via JS -->
                         </tbody>
                     </table>
                 </div>
             </div>
         </section>
 
-        <!-- ================= GET TOKEN TAB ================= -->
+        <!-- Token Request -->
         <section id="tab-getToken" class="tab-pane">
             <h1 class="dash-title">Get a New Token</h1>
             <p class="dash-subtitle">Select the service you require below.</p>
@@ -215,7 +214,7 @@
             </div>
         </section>
 
-        <!-- ================= TOKEN HISTORY TAB ================= -->
+        <!-- Token History -->
         <section id="tab-history" class="tab-pane">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <div>
@@ -271,14 +270,14 @@
         </div>
     </div>
 
-    <!-- NEW: Multi-Method Payment Modal -->
+    <!-- Payment Modal -->
     <div id="paymentModal" class="modal-overlay hidden" style="z-index: 10000;">
         <div class="modal-card" style="max-width: 450px; width: 95%; border: 1px solid rgba(251, 191, 36, 0.4); box-shadow: 0 25px 50px rgba(0,0,0,0.6);">
             <div style="text-align: center; margin-bottom: 1.5rem;">
                 <div style="width: 60px; height: 60px; background: rgba(251, 191, 36, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #FBBF24; font-size: 1.5rem; border: 1px solid rgba(251, 191, 36, 0.3);">
                     <i class="fas fa-crown"></i>
                 </div>
-                <h2 style="color: #FBBF24; margin-bottom: 0.5rem; font-size: 1.75rem;">WaitPay Checkout</h2>
+                <h2 style="color: #FBBF24; margin-bottom: 0.5rem; font-size: 1.75rem;">Payment Checkout</h2>
                 <p style="color: #94A3B8; font-size: 0.95rem;">Total Amount: <strong style="color: #F8FAFC;">Rs. 500</strong></p>
             </div>
 
@@ -390,7 +389,7 @@
         </div>
     </div>
 
-    <!-- NEW: Smart Limit / Access Denied Modal -->
+    <!-- Access Control Modal -->
     <div id="limitModal" class="modal-overlay hidden" style="z-index: 10001;">
         <div class="modal-card" style="border: 2px solid #EF4444; box-shadow: 0 0 50px rgba(239, 68, 68, 0.25); text-align: center; max-width: 400px;">
             <div style="width: 70px; height: 70px; background: rgba(239, 68, 68, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #EF4444; font-size: 2rem; border: 1px solid rgba(239, 68, 68, 0.3);">

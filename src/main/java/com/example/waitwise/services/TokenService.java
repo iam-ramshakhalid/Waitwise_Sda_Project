@@ -74,12 +74,7 @@ public class TokenService {
         return createToken(walkIn, service, priorityRequest, "", true);
     }
 
-    // --- Token Cancellation ---
-
-    /**
-     * Cancels a token if it belongs to the requesting citizen and is still in Waiting status.
-     * If it was a Golden priority token, the associated revenue entry is also removed.
-     */
+    // Token Cancellation
     public Token cancelToken(int tokenId, String cnic) {
         Token token = tokenRepo.findById(tokenId)
                 .orElseThrow(() -> new RuntimeException("Token not found!"));
@@ -137,7 +132,7 @@ public class TokenService {
         nextToken.setStatusUpdateTime(LocalDateTime.now());
         Token saved = tokenRepo.save(nextToken);
 
-        // 1. Notify the person whose turn it is
+        // Notify turn
         new Thread(() -> {
             try {
                 if (saved.getCitizen().getEmail() != null) {
@@ -151,7 +146,7 @@ public class TokenService {
             } catch (Exception e) {}
         }).start();
 
-        // 2. Notify the person at position 5 (index 4 in remaining waiting list)
+        // Notify position 5
         if (waitingTokens.size() > 5) {
             Token approachToken = waitingTokens.get(5); // The person who is now at position 5
             new Thread(() -> {
@@ -185,7 +180,7 @@ public class TokenService {
     public Token markAsServed(int tokenId) {
         Token token = tokenRepo.findById(tokenId).orElseThrow(() -> new RuntimeException("Token not found"));
         
-        // Calculate service time if we have a start time
+        // Update service stats
         if (token.getServiceStartTime() != null) {
             long minutes = java.time.Duration.between(token.getServiceStartTime(), LocalDateTime.now()).toMinutes();
             if (minutes <= 0) minutes = 1; // Minimum 1 minute service time
@@ -232,7 +227,7 @@ public class TokenService {
         if (missed >= 3) {
             token.setStatus("Expired");
             
-            // Increment citizen noShowCount and potentially blacklist
+            // Update no-show count
             Citizen citizen = token.getCitizen();
             if (citizen != null && !"WALKIN".equals(citizen.getCnic())) {
                 int count = citizen.getNoShowCount() + 1;
@@ -252,12 +247,7 @@ public class TokenService {
         return tokenRepo.save(token);
     }
 
-    // --- Emergency Escalation (Reception Staff) ---
-
-    /**
-     * Escalates a token to the absolute front of the queue.
-     * Sets priorityValue to 0 (higher than Emergency=1) and issues a very early timestamp.
-     */
+    // Reception Escalation
     public Token escalateToFront(int tokenId) {
         Token token = tokenRepo.findById(tokenId)
                 .orElseThrow(() -> new RuntimeException("Token not found!"));
@@ -268,7 +258,7 @@ public class TokenService {
 
         token.setPriorityType("Emergency");
         token.setPriorityValue(0); // Highest priority (above normal Emergency=1)
-        token.setIssueTime(LocalDateTime.of(2000, 1, 1, 0, 0)); // Ensures it's first in queue
+        token.setIssueTime(LocalDateTime.of(2000, 1, 1, 0, 0)); 
         token.setStatusUpdateTime(LocalDateTime.now());
         return tokenRepo.save(token);
     }
@@ -285,7 +275,7 @@ public class TokenService {
     }
 
     private Token createToken(Citizen citizen, com.example.waitwise.models.Service service, String priorityRequest, String emergencyDescription, boolean isStaff) {
-        // --- 1. One Active Token Per Service Limit ---
+        // Validation checks
         if (!isStaff && !"WALKIN".equals(citizen.getCnic())) {
             List<String> activeStatuses = List.of("Waiting", "Called", "Serving");
             boolean alreadyHasActiveToken = tokenRepo.findAll().stream()
@@ -300,7 +290,7 @@ public class TokenService {
 
         if (!isStaff && citizen.isBlacklisted()) {
             if (citizen.getBlacklistReleaseDate() != null && LocalDateTime.now().isAfter(citizen.getBlacklistReleaseDate())) {
-                // Time's up! Reset the user
+                // Reset blacklist
                 citizen.setBlacklisted(false);
                 citizen.setNoShowCount(0);
                 citizen.setBlacklistReleaseDate(null);
@@ -338,7 +328,7 @@ public class TokenService {
 
         Token saved = tokenRepo.save(token);
 
-        // Notify citizen about token generation / payment
+        // Email notification
         new Thread(() -> {
             try {
                 if (saved.getCitizen().getEmail() != null) {
@@ -373,7 +363,7 @@ public class TokenService {
             // Staff can override emergency without description
             if (isStaff) return "Emergency";
             
-            // Use NLP-based emergency detection for citizens
+            // Emergency detection
             if (EmergencyDetector.isEmergency(emergencyDescription)) return "Emergency";
             
             // If verification fails, do NOT auto-assign. Throw error so user can re-choose.
@@ -391,13 +381,7 @@ public class TokenService {
         return "Normal";
     }
 
-    /**
-     * Priority values - UPDATED ORDER:
-     * Emergency = 1 (highest - real emergencies come first)
-     * Golden = 2 (paid priority)
-     * Senior = 3
-     * Normal = 4 (lowest)
-     */
+    // Priority mappings
     private int getPriorityValue(String priority) {
         switch(priority) {
             case "Emergency": return 1;

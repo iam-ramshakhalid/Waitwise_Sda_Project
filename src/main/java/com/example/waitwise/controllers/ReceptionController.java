@@ -45,9 +45,7 @@ public class ReceptionController {
         return tokenService.generateNewToken(cnic, serviceId, priority, "", true);
     }
 
-    /**
-     * Get all waiting tokens for a specific service (for escalation selection).
-     */
+    // Get tokens for escalation list
     @GetMapping("/active-tokens")
     public List<Map<String, Object>> getActiveTokens(@RequestParam int serviceId) {
         List<Token> tokens = tokenService.getActiveTokensForService(serviceId);
@@ -63,9 +61,7 @@ public class ReceptionController {
         }).collect(Collectors.toList());
     }
 
-    /**
-     * Escalate a token to the absolute front of the queue due to emergency.
-     */
+    // Push token to front
     @PostMapping("/escalate")
     public Map<String, Object> escalateToken(@RequestParam int tokenId) {
         Token escalated = tokenService.escalateToFront(tokenId);

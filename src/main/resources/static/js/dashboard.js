@@ -89,7 +89,7 @@ async function submitEmergency() {
     }
     
     errorEl.classList.add('hidden');
-    // We don't close the modal yet. We wait for generateToken to verify.
+    // Wait for verification
     generateToken(text);
 }
 
@@ -120,7 +120,6 @@ async function generateToken(emergencyDescription = '') {
                 errorEl.textContent = data.message || "Verification failed.";
                 errorEl.classList.remove('hidden');
             } else {
-                // NEW: Use custom modal instead of alert
                 const limitMsg = document.getElementById('limitModalMessage');
                 const limitModal = document.getElementById('limitModal');
                 limitMsg.textContent = data.message || "Failed to generate token.";
@@ -322,7 +321,7 @@ function filterHistory() {
     });
 }
 
-// --- Token Cancellation ---
+// Token Cancellation
 
 function confirmCancelToken(tokenId, tokenNumber) {
     document.getElementById('cancelTokenNumber').textContent = tokenNumber;
@@ -370,9 +369,7 @@ let toastShown = false;
 let turnUpModalShown = new Set();
 
 async function pollQueueStatus() {
-    // If we have historyData, we can poll for ALL active tokens in the dashboard.
-    // We fetch status using the primary active token ID, or fetch individually.
-    // For simplicity, we just use the first active token ID for toast, but let's update spans by ID if they exist.
+    // Update active spans
     
     // Iterate over tokens visible in dashboard
     const spans = document.querySelectorAll('[id^="resEstWaitSpan_"]');
@@ -440,7 +437,7 @@ function logout() {
     window.location.href = 'index.html';
 }
 
-// --- Multi-Method Payment Helpers ---
+// Payment logic
 let selectedPaymentMethod = 'card';
 let selectedWallet = 'easypaisa';
 
@@ -508,7 +505,7 @@ async function executePayment() {
     errorEl.classList.add('hidden');
     errorEl.textContent = '';
 
-    // --- Validation ---
+    // Validation
     if (selectedPaymentMethod === 'card') {
         const cardNumber = document.getElementById('pay-card-number').value.replace(/\D/g, '');
         const expiry = document.getElementById('pay-expiry').value.trim();
@@ -551,12 +548,11 @@ async function executePayment() {
         return;
     }
 
-    // --- Process Simulation ---
+    // Simulation
     btn.disabled = true;
     btn.style.opacity = '0.5';
     processing.classList.remove('hidden');
     
-    // Simulate payment processing delay
     setTimeout(() => {
         processing.innerHTML = '<i class="fas fa-check-circle"></i> Payment Successful!';
         processing.style.background = 'rgba(16, 185, 129, 0.1)';
@@ -571,7 +567,6 @@ async function executePayment() {
             processing.classList.add('hidden');
             processing.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Verifying with <span id="verifying-text">Bank</span>...';
             
-            // Proceed to token generation
             generateToken();
         }, 1500);
     }, 2500);

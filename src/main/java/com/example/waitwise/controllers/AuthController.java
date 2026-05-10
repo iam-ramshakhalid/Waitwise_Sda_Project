@@ -39,7 +39,7 @@ public class AuthController {
             throw new RuntimeException("Email is required but not found in the JSON body.");
         }
 
-        if (!email.toLowerCase().matches("^[a-zA-Z0-9._%+-]+@gmail\\.com$")) {
+        if (!email.toLowerCase().endsWith("@gmail.com")) {
             throw new RuntimeException("Only @gmail.com email addresses are allowed.");
         }
 

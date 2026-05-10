@@ -4,14 +4,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * NLP-based emergency detection engine.
- * Uses negation-aware keyword scoring to determine if a text describes a genuine emergency.
- * Handles tricky cases like "I have no emergency" vs "I have an emergency".
- */
+// Basic emergency detection logic
 public class EmergencyDetector {
 
-    // Negation words/phrases that invert the meaning of nearby keywords
+    // Negation words
     private static final Set<String> NEGATION_WORDS = new HashSet<>(Arrays.asList(
         "no", "not", "never", "none", "nothing", "nowhere", "neither", "nor",
         "don't", "dont", "doesn't", "doesnt", "didn't", "didnt",
@@ -121,16 +117,10 @@ public class EmergencyDetector {
         }
     }
 
-    // Threshold: score must meet or exceed this to be classified as emergency
+    // Minimum score for emergency
     private static final int EMERGENCY_THRESHOLD = 3;
 
-    /**
-     * Determines if the given text describes a genuine emergency.
-     * Uses negation-aware keyword scoring.
-     *
-     * @param text the emergency description provided by the citizen
-     * @return true if the text indicates a genuine emergency
-     */
+    // Main detection method
     public static boolean isEmergency(String text) {
         if (text == null || text.trim().isEmpty()) {
             return false;
@@ -183,9 +173,7 @@ public class EmergencyDetector {
         return totalScore >= EMERGENCY_THRESHOLD;
     }
 
-    /**
-     * Calculates the Levenshtein distance between two strings to detect typos.
-     */
+    // Typo check logic
     private static int calculateLevenshteinDistance(String s1, String s2) {
         int[][] dp = new int[s1.length() + 1][s2.length() + 1];
 
@@ -201,10 +189,7 @@ public class EmergencyDetector {
         return dp[s1.length()][s2.length()];
     }
 
-    /**
-     * Checks if the keyword at the given position in the text is negated.
-     * Looks for negation words within a window of 4 words before the keyword.
-     */
+    // Context check for negations
     private static boolean isNegatedAtPosition(String fullText, String[] words, int charIndex, String keyword) {
         // Get the text before the keyword
         String precedingText = fullText.substring(Math.max(0, charIndex - 30), charIndex).trim();
