@@ -123,9 +123,14 @@
                         <div id="resTokenNumber" style="font-size: 3.5rem; font-weight: 800; color: #F8FAFC;"></div>
                         <p id="resServiceName" style="color: var(--text-secondary); margin-bottom: 1rem;"></p>
                     </div>
-                    <button onclick="resetIssueForm()" class="btn btn-primary" style="width: 100%; margin-top: 1rem; background: #34D399; color: #064E3B;">
-                        <i class="fas fa-user-plus"></i> Issue Another Token
-                    </button>
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button onclick="window.print()" class="btn btn-outline no-print" style="flex: 1; border-color: #34D399; color: #34D399;">
+                            <i class="fas fa-print"></i> Print Token
+                        </button>
+                        <button onclick="resetIssueForm()" class="btn btn-primary no-print" style="flex: 2; background: #34D399; color: #064E3B;">
+                            <i class="fas fa-user-plus"></i> Issue Another
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
