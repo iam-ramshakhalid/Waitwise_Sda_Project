@@ -443,10 +443,27 @@ public class AdminController {
         }
 
         if (role.startsWith("CounterStaff")) {
-            // Since counters are now unified, we track overall performance
-            // For now, we return a general staff overview
-            performance.put("message", "General performance metrics (Global Pool enabled)");
-            performance.put("tokensServed", "N/A"); // Will need servedBy field in Token for detailed stats
+            // Detailed performance tracking using the new servedBy field
+            long totalServed = tokenRepository.countByServedByAndStatus(staff, "Served");
+            
+            // Calculate avg service time for this specific staff member
+            List<Token> servedTokens = tokenRepository.findAll().stream()
+                    .filter(t -> "Served".equals(t.getStatus()) && t.getServedBy() != null && t.getServedBy().getUserId() == id)
+                    .collect(java.util.stream.Collectors.toList());
+            
+            long totalMinutes = 0;
+            for (Token t : servedTokens) {
+                if (t.getServiceStartTime() != null && t.getStatusUpdateTime() != null) {
+                    totalMinutes += java.time.Duration.between(t.getServiceStartTime(), t.getStatusUpdateTime()).toMinutes();
+                }
+            }
+            
+            long avgTime = (totalServed > 0) ? (totalMinutes / totalServed) : 0;
+            
+            performance.put("tokensServed", totalServed);
+            performance.put("avgServiceTime", avgTime);
+            performance.put("noShowCount", 0); // Can be expanded later
+            performance.put("message", "Staff performance data retrieved successfully.");
         } else {
             performance.put("tokensServed", 0);
             performance.put("avgServiceTime", 0);

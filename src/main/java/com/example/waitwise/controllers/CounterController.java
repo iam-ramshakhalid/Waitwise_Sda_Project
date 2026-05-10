@@ -15,13 +15,13 @@ public class CounterController {
     private com.example.waitwise.services.TokenService tokenService;
 
     @PostMapping("/call-next")
-    public Token callNextToken(@RequestParam(defaultValue = "-1") int serviceId) {
-        return tokenService.callNextToken(serviceId);
+    public Token callNextToken(@RequestParam(defaultValue = "-1") int serviceId, @RequestParam int staffId) {
+        return tokenService.callNextToken(serviceId, staffId);
     }
 
     @PostMapping("/start-serving")
-    public Token startServing(@RequestParam int tokenId) {
-        return tokenService.startServing(tokenId);
+    public Token startServing(@RequestParam int tokenId, @RequestParam int staffId) {
+        return tokenService.startServing(tokenId, staffId);
     }
 
     @PostMapping("/mark-served")

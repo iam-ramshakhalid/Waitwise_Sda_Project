@@ -33,4 +33,8 @@ public interface TokenRepository extends JpaRepository<Token, Integer> {
 
     // M4: Find all tokens for a service within a date range
     List<Token> findByServiceAndIssueTimeBetween(com.example.waitwise.models.Service service, LocalDateTime start, LocalDateTime end);
+
+    // Performance tracking
+    long countByServedByAndStatus(com.example.waitwise.models.User user, String status);
+    long countByServedByAndStatusAndStatusUpdateTimeBetween(com.example.waitwise.models.User user, String status, LocalDateTime start, LocalDateTime end);
 }

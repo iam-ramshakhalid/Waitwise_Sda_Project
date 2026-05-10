@@ -1,6 +1,7 @@
 let currentServiceId = null;
 let currentServiceName = null;
 let currentPriority = null;
+let activeServiceIds = new Set(); // To track services already in use
 
 document.addEventListener('DOMContentLoaded', () => {
     let cnic = sessionStorage.getItem('citizenCnic');
@@ -49,6 +50,13 @@ function resetGetTokenFlow() {
 }
 
 function selectService(id, name) {
+    if (activeServiceIds.has(id)) {
+        const limitMsg = document.getElementById('limitModalMessage');
+        const limitModal = document.getElementById('limitModal');
+        limitMsg.textContent = `You already have an active token for ${name}. You can only have one active token per service at a time.`;
+        limitModal.classList.remove('hidden');
+        return;
+    }
     currentServiceId = id;
     currentServiceName = name;
     document.getElementById('selectedServiceText').textContent = name;
@@ -174,6 +182,8 @@ async function loadDashboardMetrics() {
         let activeTokensHtml = '';
         let activeTokensCount = 0;
         let firstActiveTokenId = null;
+        
+        activeServiceIds.clear(); // Clear before repopulating
 
         data.recentTokens.forEach(t => {
             const dateStr = new Date(t.issueTime).toLocaleString();
@@ -195,6 +205,9 @@ async function loadDashboardMetrics() {
                 if (!firstActiveTokenId) {
                     firstActiveTokenId = t.tokenId;
                     sessionStorage.setItem('activeTokenId', t.tokenId); // Ensure background polling uses the first one
+                }
+                if (t.service && t.service.serviceId) {
+                    activeServiceIds.add(t.service.serviceId);
                 }
                 activeTokensHtml += `
                     <div class="digital-token" style="min-width: 300px; max-width: 320px; flex-shrink: 0; margin-right: 1.5rem; margin-bottom: 1rem;">

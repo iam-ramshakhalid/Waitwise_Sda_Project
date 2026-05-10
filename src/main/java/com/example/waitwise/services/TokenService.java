@@ -26,6 +26,7 @@ public class TokenService {
     @Autowired private ServiceRepository serviceRepo;
     @Autowired private RevenueRepository revenueRepo;
     @Autowired private EmailService emailService;
+    @Autowired private com.example.waitwise.repositories.UserRepository userRepository;
 
     public Token generateNewTokenByName(String cnic, String serviceName, String priorityRequest, String emergencyDescription) {
         Citizen citizen = citizenRepo.findByCnic(cnic).orElseGet(() -> {
@@ -116,7 +117,8 @@ public class TokenService {
 
     // --- Counter Operations ---
 
-    public Token callNextToken(int serviceId) {
+    public Token callNextToken(int serviceId, int staffId) {
+        com.example.waitwise.models.User staff = userRepository.findById(staffId).orElse(null);
         List<Token> waitingTokens = tokenRepo.findAll().stream()
                 .filter(t -> "Waiting".equals(t.getStatus()) && (serviceId == -1 || t.getService().getServiceId() == serviceId))
                 .sorted(Comparator.comparing(Token::getPriorityValue)
@@ -130,6 +132,9 @@ public class TokenService {
         Token nextToken = waitingTokens.get(0);
         nextToken.setStatus("Called");
         nextToken.setStatusUpdateTime(LocalDateTime.now());
+        if (staff != null) {
+            nextToken.setServedBy(staff);
+        }
         Token saved = tokenRepo.save(nextToken);
 
         // Notify turn
@@ -166,8 +171,12 @@ public class TokenService {
         return saved;
     }
 
-    public Token startServing(int tokenId) {
+    public Token startServing(int tokenId, int staffId) {
         Token token = tokenRepo.findById(tokenId).orElseThrow(() -> new RuntimeException("Token not found"));
+        if (token.getServedBy() == null || token.getServedBy().getUserId() != staffId) {
+            com.example.waitwise.models.User staff = userRepository.findById(staffId).orElse(null);
+            if (staff != null) token.setServedBy(staff);
+        }
         if (!"Called".equals(token.getStatus())) {
             throw new RuntimeException("Token is not in Called state.");
         }

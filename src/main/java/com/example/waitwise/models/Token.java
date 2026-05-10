@@ -22,6 +22,10 @@ public class Token {
     @ManyToOne
     @JoinColumn(name = "ServiceID")
     private Service service;
+
+    @ManyToOne
+    @JoinColumn(name = "ServedByStaffId")
+    private User servedBy;
     public int getTokenId() { return tokenId; }
     public void setTokenId(int tokenId) { this.tokenId = tokenId; }
     public String getTokenNumber() { return tokenNumber; }
@@ -36,6 +40,8 @@ public class Token {
     public void setCitizen(Citizen citizen) { this.citizen = citizen; }
     public Service getService() { return service; }
     public void setService(Service service) { this.service = service; }
+    public User getServedBy() { return servedBy; }
+    public void setServedBy(User servedBy) { this.servedBy = servedBy; }
 
     @Column(name = "ExpiryTime")
     private LocalDateTime expiryTime;

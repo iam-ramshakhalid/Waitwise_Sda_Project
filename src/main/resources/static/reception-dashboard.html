@@ -192,6 +192,18 @@
             </div>
         </div>
     </div>
+    
+    <!-- Escalation Success Modal -->
+    <div id="escalateSuccessModal" class="modal-overlay hidden" style="z-index: 10002;">
+        <div class="modal-card" style="border: 2px solid #10B981; box-shadow: 0 0 50px rgba(16, 185, 129, 0.25); text-align: center; max-width: 400px;">
+            <div style="width: 70px; height: 70px; background: rgba(16, 185, 129, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #10B981; font-size: 2rem; border: 1px solid rgba(16, 185, 129, 0.3);">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 style="font-size: 1.75rem; color: #F8FAFC; margin-bottom: 0.75rem;">Escalated!</h2>
+            <p id="escSuccessMessage" style="font-size: 0.95rem; color: #94A3B8; line-height: 1.6; margin-bottom: 2rem;">Token has been moved to the front.</p>
+            <button class="btn" style="width: 100%; background: #10B981; color: white; padding: 0.8rem; border-radius: 10px; font-weight: 600;" onclick="closeModal('escalateSuccessModal')">Got it</button>
+        </div>
+    </div>
 
     <script>
         const API = 'http://localhost:8081/api/reception';
@@ -338,7 +350,14 @@
                 try {
                     const res = await fetch(`${API}/escalate?tokenId=${pendingEscalationId}`, { method: 'POST' });
                     const data = await res.json();
-                    alert(data.message);
+                    
+                    if (res.ok) {
+                        document.getElementById('escSuccessMessage').textContent = data.message || "Token has been moved to the front.";
+                        document.getElementById('escalateSuccessModal').classList.remove('hidden');
+                    } else {
+                        alert(data.message || 'Escalation failed');
+                    }
+                    
                     loadEscalationList();
                     loadQueueSummary();
                 } catch (e) { alert('Escalation failed'); }

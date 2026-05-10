@@ -242,7 +242,9 @@
 
         async function callNext() {
             try {
-                const response = await fetch(`${API_BASE}/call-next?serviceId=${serviceId}`, { method: 'POST' });
+                const staff = JSON.parse(localStorage.getItem('staffUser'));
+                const staffId = staff ? staff.userId : 0;
+                const response = await fetch(`${API_BASE}/call-next?serviceId=${serviceId}&staffId=${staffId}`, { method: 'POST' });
                 if (response.ok) {
                     const token = await response.json();
                     currentTokenId = token.tokenId;
@@ -260,7 +262,9 @@
         async function startServing() {
             if (!currentTokenId) return;
             try {
-                const response = await fetch(`${API_BASE}/start-serving?tokenId=${currentTokenId}`, { method: 'POST' });
+                const staff = JSON.parse(localStorage.getItem('staffUser'));
+                const staffId = staff ? staff.userId : 0;
+                const response = await fetch(`${API_BASE}/start-serving?tokenId=${currentTokenId}&staffId=${staffId}`, { method: 'POST' });
                 if (response.ok) {
                     const token = await response.json();
                     updateUIForServing(token);
