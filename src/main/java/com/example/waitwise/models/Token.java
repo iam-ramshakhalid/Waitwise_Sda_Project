@@ -49,6 +49,9 @@ public class Token {
     @Column(name = "PriorityValue")
     private int priorityValue;
 
+    @Column(name = "ServiceStartTime")
+    private LocalDateTime serviceStartTime;
+
     public LocalDateTime getExpiryTime() { return expiryTime; }
     public void setExpiryTime(LocalDateTime expiryTime) { this.expiryTime = expiryTime; }
     public LocalDateTime getStatusUpdateTime() { return statusUpdateTime; }
@@ -57,6 +60,8 @@ public class Token {
     public void setMissedCallCount(int missedCallCount) { this.missedCallCount = missedCallCount; }
     public int getPriorityValue() { return priorityValue; }
     public void setPriorityValue(int priorityValue) { this.priorityValue = priorityValue; }
+    public LocalDateTime getServiceStartTime() { return serviceStartTime; }
+    public void setServiceStartTime(LocalDateTime serviceStartTime) { this.serviceStartTime = serviceStartTime; }
 
     @Transient
     private int estimatedWaitTime;

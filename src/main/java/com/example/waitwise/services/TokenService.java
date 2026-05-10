@@ -176,12 +176,32 @@ public class TokenService {
             throw new RuntimeException("Token is not in Called state.");
         }
         token.setStatus("Serving");
+        token.setServiceStartTime(LocalDateTime.now());
         token.setStatusUpdateTime(LocalDateTime.now());
         return tokenRepo.save(token);
     }
 
     public Token markAsServed(int tokenId) {
         Token token = tokenRepo.findById(tokenId).orElseThrow(() -> new RuntimeException("Token not found"));
+        
+        // Calculate service time if we have a start time
+        if (token.getServiceStartTime() != null) {
+            long minutes = java.time.Duration.between(token.getServiceStartTime(), LocalDateTime.now()).toMinutes();
+            if (minutes <= 0) minutes = 1; // Minimum 1 minute service time
+
+            com.example.waitwise.models.Service service = token.getService();
+            if (service != null) {
+                int totalServed = service.getTotalPeopleServed() + 1;
+                int totalTime = service.getTotalServiceTimeMinutes() + (int) minutes;
+                
+                service.setTotalPeopleServed(totalServed);
+                service.setTotalServiceTimeMinutes(totalTime);
+                service.setAverageWaitTimeMinutes(totalTime / totalServed);
+                
+                serviceRepo.save(service);
+            }
+        }
+
         token.setStatus("Served");
         token.setStatusUpdateTime(LocalDateTime.now());
         return tokenRepo.save(token);
@@ -210,6 +230,18 @@ public class TokenService {
         
         if (missed >= 3) {
             token.setStatus("Expired");
+            
+            // Increment citizen noShowCount and potentially blacklist
+            Citizen citizen = token.getCitizen();
+            if (citizen != null && !"WALKIN".equals(citizen.getCnic())) {
+                int count = citizen.getNoShowCount() + 1;
+                citizen.setNoShowCount(count);
+                if (count >= 5) {
+                    citizen.setBlacklisted(true);
+                    citizen.setBlacklistReleaseDate(LocalDateTime.now().plusDays(30));
+                }
+                citizenRepo.save(citizen);
+            }
         } else {
             token.setStatus("Waiting");
             // Update issue time so it goes to the back of its own priority queue
@@ -252,6 +284,19 @@ public class TokenService {
     }
 
     private Token createToken(Citizen citizen, com.example.waitwise.models.Service service, String priorityRequest, String emergencyDescription, boolean isStaff) {
+        if (citizen.isBlacklisted()) {
+            if (citizen.getBlacklistReleaseDate() != null && LocalDateTime.now().isAfter(citizen.getBlacklistReleaseDate())) {
+                // Time's up! Reset the user
+                citizen.setBlacklisted(false);
+                citizen.setNoShowCount(0);
+                citizen.setBlacklistReleaseDate(null);
+                citizenRepo.save(citizen);
+            } else {
+                String releaseDate = citizen.getBlacklistReleaseDate() != null ? 
+                    citizen.getBlacklistReleaseDate().format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy")) : "N/A";
+                throw new RuntimeException("Access Denied: You have exceeded the limit of 5 missed tokens. You are currently blacklisted due to multiple no-shows and can request a new token after " + releaseDate + ".");
+            }
+        }
         String priority = determinePriority(citizen, priorityRequest, emergencyDescription, isStaff);
         int priorityValue = getPriorityValue(priority);
 

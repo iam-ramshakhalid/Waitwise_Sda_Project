@@ -114,7 +114,11 @@ public class AdminController {
         List<Map<String, Object>> usage = services.stream().map(service -> {
             Map<String, Object> map = new HashMap<>();
             map.put("serviceName", service.getServiceName());
-            map.put("totalServed", service.getTotalPeopleServed());
+            
+            // Get LIVE all-time count from repository instead of the static field
+            long totalServed = tokenRepository.countByServiceAndStatus(service, "Served");
+            map.put("totalServed", totalServed);
+            
             long tokensGenerated = tokenRepository.countByService(service);
             map.put("tokensGenerated", tokensGenerated);
             map.put("averageWaitTime", service.getAverageWaitTimeMinutes());

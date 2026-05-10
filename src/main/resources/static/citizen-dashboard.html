@@ -183,7 +183,7 @@
                     <div class="priority-card golden" onclick="selectPriority('Golden')">
                         <div class="card-icon" style="color: #FBBF24;"><i class="fas fa-star"></i></div>
                         <div class="card-title">Golden Ticket</div>
-                        <div class="card-desc">Rs. 500 (Highest Priority)</div>
+                        <div class="card-desc">Rs. 1,000 (Highest Priority)</div>
                     </div>
                 </div>
             </div>
@@ -271,23 +271,86 @@
         </div>
     </div>
 
-    <!-- Golden Ticket Payment Modal -->
-    <div id="paymentModal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <h2 style="color: #FBBF24;"><i class="fas fa-crown"></i> Golden Ticket</h2>
-            <p>Bypass the regular queue completely. Fee: <strong>Rs. 500</strong></p>
-            
-            <div class="credit-card-mock">
-                <input type="text" placeholder="Card Number (Mock)" value="**** **** **** 1234" readonly>
-                <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
-                    <input type="text" placeholder="MM/YY" value="12/26" readonly>
-                    <input type="text" placeholder="CVC" value="***" readonly>
+    <!-- NEW: Multi-Method Payment Modal -->
+    <div id="paymentModal" class="modal-overlay hidden" style="z-index: 10000;">
+        <div class="modal-card" style="max-width: 450px; width: 95%; border: 1px solid rgba(251, 191, 36, 0.4); box-shadow: 0 25px 50px rgba(0,0,0,0.6);">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <div style="width: 60px; height: 60px; background: rgba(251, 191, 36, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #FBBF24; font-size: 1.5rem; border: 1px solid rgba(251, 191, 36, 0.3);">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <h2 style="color: #FBBF24; margin-bottom: 0.5rem; font-size: 1.75rem;">WaitPay Checkout</h2>
+                <p style="color: #94A3B8; font-size: 0.95rem;">Total Amount: <strong style="color: #F8FAFC;">Rs. 500</strong></p>
+            </div>
+
+            <!-- Tabs -->
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; background: rgba(15, 23, 42, 0.5); padding: 0.3rem; border-radius: 12px;">
+                <button onclick="switchPaymentTab('card')" id="pay-tab-card" style="flex: 1; padding: 0.75rem; border-radius: 10px; border: none; background: #3B82F6; color: white; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.3s;">
+                    <i class="fas fa-credit-card" style="margin-right: 0.4rem;"></i> Bank Card
+                </button>
+                <button onclick="switchPaymentTab('wallet')" id="pay-tab-wallet" style="flex: 1; padding: 0.75rem; border-radius: 10px; border: none; background: transparent; color: #94A3B8; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.3s;">
+                    <i class="fas fa-mobile-screen-button" style="margin-right: 0.4rem;"></i> Wallet
+                </button>
+            </div>
+
+            <!-- Card Method -->
+            <div id="method-card">
+                <div style="margin-bottom: 1.25rem;">
+                    <label style="display:block; font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; margin-bottom: 0.6rem; letter-spacing: 0.5px;">Card Number</label>
+                    <input type="text" id="pay-card-number" maxlength="16" placeholder="4242 4242 4242 4242" style="width:100%; padding: 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; font-family: monospace; font-size: 1.1rem; letter-spacing: 2px;">
+                </div>
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="flex: 1.5;">
+                        <label style="display:block; font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; margin-bottom: 0.6rem; letter-spacing: 0.5px;">Expiry</label>
+                        <input type="text" id="pay-expiry" maxlength="5" placeholder="MM/YY" style="width:100%; padding: 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; font-size: 1rem;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display:block; font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; margin-bottom: 0.6rem; letter-spacing: 0.5px;">CVV</label>
+                        <input type="password" id="pay-cvv" maxlength="3" placeholder="***" style="width:100%; padding: 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; font-size: 1rem;">
+                    </div>
                 </div>
             </div>
 
-            <div class="modal-actions">
-                <button class="btn btn-outline" onclick="closeModal('paymentModal')">Cancel</button>
-                <button class="btn btn-primary" style="background: linear-gradient(90deg, #FBBF24, #D97706); color: #000; font-weight: bold; border: none;" onclick="submitPayment()">Pay Rs. 500 & Generate</button>
+            <!-- Wallet Method -->
+            <div id="method-wallet" class="hidden">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem;">
+                    <!-- EasyPaisa -->
+                    <div onclick="selectPayWallet('easypaisa', this)" class="wallet-sel-opt active" style="text-align:center; padding: 1.25rem 0.5rem; border-radius: 12px; background: rgba(16, 185, 129, 0.1); border: 2px solid #10B981; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 60px;">
+                        <span style="font-weight: 800; color: #10B981; font-size: 1rem; letter-spacing: -0.2px;">EasyPaisa</span>
+                    </div>
+                    <!-- JazzCash -->
+                    <div onclick="selectPayWallet('jazzcash', this)" class="wallet-sel-opt" style="text-align:center; padding: 1.25rem 0.5rem; border-radius: 12px; background: rgba(239, 68, 68, 0.05); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 60px;">
+                        <span style="font-weight: 800; color: #EF4444; font-size: 1rem; letter-spacing: -0.2px;">JazzCash</span>
+                    </div>
+                    <!-- NayaPay -->
+                    <div onclick="selectPayWallet('nayapay', this)" class="wallet-sel-opt" style="text-align:center; padding: 1.25rem 0.5rem; border-radius: 12px; background: rgba(249, 115, 22, 0.05); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 60px;">
+                        <span style="font-weight: 800; color: #F97316; font-size: 1rem; letter-spacing: -0.2px;">NayaPay</span>
+                    </div>
+                    <!-- SadaPay -->
+                    <div onclick="selectPayWallet('sadapay', this)" class="wallet-sel-opt" style="text-align:center; padding: 1.25rem 0.5rem; border-radius: 12px; background: rgba(45, 212, 191, 0.05); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 60px;">
+                        <span style="font-weight: 800; color: #2DD4BF; font-size: 1rem; letter-spacing: -0.2px;">SadaPay</span>
+                    </div>
+                </div>
+                <div style="margin-bottom: 1.25rem;">
+                    <label style="display:block; font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; margin-bottom: 0.6rem; letter-spacing: 0.5px;">Mobile Number</label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #64748B; font-weight: 600;">+92</span>
+                        <input type="text" id="pay-wallet-number" maxlength="10" placeholder="3XX XXXXXXX" style="width:100%; padding: 1rem 1rem 1rem 3.5rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; font-size: 1.1rem; letter-spacing: 1px;">
+                    </div>
+                </div>
+            </div>
+
+            <div id="pay-error" class="hidden" style="margin-bottom: 1rem; padding: 0.75rem; border-radius: 8px; background: rgba(239, 68, 68, 0.1); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.2); font-size: 0.85rem; text-align: center;">
+            </div>
+
+            <div id="pay-processing" class="hidden" style="text-align: center; margin-bottom: 1.5rem; padding: 1.25rem; border-radius: 12px; background: rgba(59, 130, 246, 0.1); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.2);">
+                <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Verifying with <span id="verifying-text">Bank</span>...
+            </div>
+
+            <div class="modal-actions" style="display: flex; gap: 1rem;">
+                <button class="btn btn-outline" onclick="closeModal('paymentModal')" style="flex: 1; padding: 1rem; border-radius: 12px;">Cancel</button>
+                <button class="btn btn-primary" id="btnFinalPay" onclick="executePayment()" style="flex: 2; padding: 1rem; border-radius: 12px; background: linear-gradient(135deg, #FBBF24, #D97706); color: #000; font-weight: 800; border: none; font-size: 1rem; box-shadow: 0 10px 20px rgba(217, 119, 6, 0.3);">
+                    Confirm Rs. 500
+                </button>
             </div>
         </div>
     </div>

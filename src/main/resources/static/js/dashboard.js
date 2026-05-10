@@ -435,3 +435,140 @@ function logout() {
     localStorage.removeItem('user');
     window.location.href = 'index.html';
 }
+
+// --- Multi-Method Payment Helpers ---
+let selectedPaymentMethod = 'card';
+let selectedWallet = 'easypaisa';
+
+function switchPaymentTab(method) {
+    selectedPaymentMethod = method;
+    const cardTab = document.getElementById('pay-tab-card');
+    const walletTab = document.getElementById('pay-tab-wallet');
+    const cardForm = document.getElementById('method-card');
+    const walletForm = document.getElementById('method-wallet');
+    const verifyingText = document.getElementById('verifying-text');
+
+    if (method === 'card') {
+        cardTab.style.background = '#3B82F6';
+        cardTab.style.color = 'white';
+        walletTab.style.background = 'transparent';
+        walletTab.style.color = '#94A3B8';
+        cardForm.classList.remove('hidden');
+        walletForm.classList.add('hidden');
+        verifyingText.textContent = 'Bank';
+    } else {
+        walletTab.style.background = '#10B981';
+        walletTab.style.color = 'white';
+        cardTab.style.background = 'transparent';
+        cardTab.style.color = '#94A3B8';
+        walletForm.classList.remove('hidden');
+        cardForm.classList.add('hidden');
+        verifyingText.textContent = selectedWallet.charAt(0).toUpperCase() + selectedWallet.slice(1);
+    }
+}
+
+function selectPayWallet(wallet, el) {
+    selectedWallet = wallet;
+    document.querySelectorAll('.wallet-sel-opt').forEach(opt => {
+        opt.classList.remove('active');
+        opt.style.background = 'rgba(255,255,255,0.05)';
+        opt.style.border = '2px solid transparent';
+    });
+    
+    el.classList.add('active');
+    const colors = { 
+        easypaisa: '#10B981', 
+        jazzcash: '#EF4444', 
+        nayapay: '#3B82F6',
+        sadapay: '#FF8066' 
+    };
+    const bgColors = {
+        easypaisa: '16, 185, 129',
+        jazzcash: '239, 68, 68',
+        nayapay: '59, 130, 246',
+        sadapay: '255, 128, 102'
+    };
+    
+    el.style.background = `rgba(${bgColors[wallet]}, 0.1)`;
+    el.style.border = `2px solid ${colors[wallet]}`;
+    
+    document.getElementById('verifying-text').textContent = wallet.charAt(0).toUpperCase() + wallet.slice(1);
+}
+
+async function executePayment() {
+    const btn = document.getElementById('btnFinalPay');
+    const processing = document.getElementById('pay-processing');
+    const errorEl = document.getElementById('pay-error');
+    
+    // Clear previous errors
+    errorEl.classList.add('hidden');
+    errorEl.textContent = '';
+
+    // --- Validation ---
+    if (selectedPaymentMethod === 'card') {
+        const cardNumber = document.getElementById('pay-card-number').value.replace(/\D/g, '');
+        const expiry = document.getElementById('pay-expiry').value.trim();
+        const cvv = document.getElementById('pay-cvv').value.replace(/\D/g, '');
+
+        if (cardNumber.length !== 16) {
+            return showError('Card number must be exactly 16 digits.');
+        }
+
+        // Expiry Validation (MM/YY)
+        if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+            return showError('Expiry must be in MM/YY format.');
+        }
+        
+        const [month, year] = expiry.split('/').map(n => parseInt(n));
+        const now = new Date();
+        const currentYear = parseInt(now.getFullYear().toString().slice(-2));
+        const currentMonth = now.getMonth() + 1;
+
+        if (month < 1 || month > 12) {
+            return showError('Invalid month in expiry date.');
+        }
+        if (year < currentYear || (year === currentYear && month < currentMonth)) {
+            return showError('Invalid Expiry: Date cannot be in the past.');
+        }
+
+        if (cvv.length !== 3) {
+            return showError('CVV must be 3 digits.');
+        }
+    } else {
+        const walletNumber = document.getElementById('pay-wallet-number').value.replace(/\D/g, '');
+        if (walletNumber.length !== 10) {
+            return showError('Mobile number must be 10 digits.');
+        }
+    }
+
+    function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.classList.remove('hidden');
+        return;
+    }
+
+    // --- Process Simulation ---
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    processing.classList.remove('hidden');
+    
+    // Simulate payment processing delay
+    setTimeout(() => {
+        processing.innerHTML = '<i class="fas fa-check-circle"></i> Payment Successful!';
+        processing.style.background = 'rgba(16, 185, 129, 0.1)';
+        processing.style.color = '#10B981';
+        processing.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+        
+        setTimeout(() => {
+            closeModal('paymentModal');
+            // Restore button for next time
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            processing.classList.add('hidden');
+            processing.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Verifying with <span id="verifying-text">Bank</span>...';
+            
+            // Proceed to token generation
+            generateToken();
+        }, 1500);
+    }, 2500);
+}
