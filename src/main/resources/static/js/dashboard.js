@@ -154,14 +154,15 @@ function renderDigitalToken(data) {
     document.getElementById('resTokenNumber').textContent = token.tokenNumber;
     document.getElementById('resService').textContent = token.service.serviceName;
     document.getElementById('resPosition').textContent = data.queuePosition;
-    document.getElementById('resWaitTime').textContent = data.estimatedWaitTime + ' min';
-    document.getElementById('resCitizenId').textContent = token.citizenCnic + ' | ' + token.citizenName;
+    if (document.getElementById('resStatus')) {
+        document.getElementById('resStatus').textContent = token.status || 'Waiting';
+    }
+    document.getElementById('resCitizenId').textContent = (token.citizenCnic || '') + ' | ' + (token.citizenName || '');
     
     const badge = document.getElementById('resPriority');
     badge.textContent = token.priorityType.toUpperCase();
     badge.className = `badge ${token.priorityType.toLowerCase()}`;
     
-
     sessionStorage.setItem('activeTokenId', token.tokenId);
 }
 
@@ -224,16 +225,12 @@ async function loadDashboardMetrics() {
                         </div>
                         <div class="token-footer">
                             <div class="stat">
+                                <span class="label">QUEUE POS</span>
+                                <span class="value" style="font-size: 1.25rem; font-weight: 800; color: #60A5FA;" id="queuePosSpan_${t.tokenId}">...</span>
+                            </div>
+                            <div class="stat">
                                 <span class="label">STATUS</span>
                                 <span class="value" style="font-size: 1rem;">${t.status}</span>
-                            </div>
-                            <div class="stat">
-                                <span class="label">EST. WAIT</span>
-                                <span class="value" style="font-size: 1rem;" id="resEstWaitSpan_${t.tokenId}">${waitStr}</span>
-                            </div>
-                            <div class="stat">
-                                <span class="label">NOW SERVING</span>
-                                <span class="value" style="color: #10B981; font-weight: bold; font-size: 1rem;" id="nowServingSpan_${t.tokenId}">Load...</span>
                             </div>
                         </div>
                         ${t.status === 'Waiting' ? `
@@ -385,7 +382,7 @@ async function pollQueueStatus() {
     // Update active spans
     
     // Iterate over tokens visible in dashboard
-    const spans = document.querySelectorAll('[id^="resEstWaitSpan_"]');
+    const spans = document.querySelectorAll('[id^="queuePosSpan_"]');
     
     for (let span of spans) {
         let tid = span.id.split('_')[1];
@@ -395,11 +392,8 @@ async function pollQueueStatus() {
                 if (!res.ok) continue;
                 const data = await res.json();
                 
-                const waitEl = document.getElementById(`resEstWaitSpan_${tid}`);
-                if (waitEl) waitEl.textContent = data.estimatedWaitTime + ' min';
-                
-                const servingEl = document.getElementById(`nowServingSpan_${tid}`);
-                if (servingEl) servingEl.textContent = data.currentlyServing;
+                const posEl = document.getElementById(`queuePosSpan_${tid}`);
+                if (posEl) posEl.textContent = data.position;
 
                 // Toast logic for the first token or any token <= 3 position
                 if (data.position <= 3 && data.position > 0 && !toastShown) {
@@ -425,7 +419,9 @@ async function pollQueueStatus() {
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('resPosition').textContent = data.position;
-                document.getElementById('resWaitTime').textContent = data.estimatedWaitTime + ' min';
+                if (document.getElementById('resStatus')) {
+                    document.getElementById('resStatus').textContent = data.status;
+                }
             }
         } catch(e) {}
     }

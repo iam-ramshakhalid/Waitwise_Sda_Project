@@ -50,7 +50,7 @@ public class CitizenController {
         for (Token t : recentTokens) {
             if ("Waiting".equals(t.getStatus())) {
                 int position = calculateQueuePosition(t);
-                t.setEstimatedWaitTime(position * t.getService().getAverageWaitTimeMinutes());
+                t.setEstimatedWaitTime((position - 1) * t.getService().getAverageWaitTimeMinutes());
             } else {
                 t.setEstimatedWaitTime(0);
             }
@@ -73,7 +73,7 @@ public class CitizenController {
         }
         
         int position = calculateQueuePosition(token);
-        int waitTime = position * token.getService().getAverageWaitTimeMinutes();
+        int waitTime = (position - 1) * token.getService().getAverageWaitTimeMinutes();
         
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
@@ -94,7 +94,7 @@ public class CitizenController {
         for (Token t : history) {
             if ("Waiting".equals(t.getStatus())) {
                 int position = calculateQueuePosition(t);
-                t.setEstimatedWaitTime(position * t.getService().getAverageWaitTimeMinutes());
+                t.setEstimatedWaitTime((position - 1) * t.getService().getAverageWaitTimeMinutes());
             } else {
                 t.setEstimatedWaitTime(0);
             }
@@ -117,7 +117,7 @@ public class CitizenController {
         if (token == null) throw new RuntimeException("Token not found");
         
         int position = calculateQueuePosition(token);
-        int waitTime = position * token.getService().getAverageWaitTimeMinutes();
+        int waitTime = (position - 1) * token.getService().getAverageWaitTimeMinutes();
         
         Token currentlyServing = tokenRepo.findAll().stream()
             .filter(t -> (t.getStatus().equals("Serving") || t.getStatus().equals("Called")) && t.getService().getServiceId() == token.getService().getServiceId())
@@ -145,9 +145,9 @@ public class CitizenController {
             
         for (int i = 0; i < activeQueue.size(); i++) {
             if (activeQueue.get(i).getTokenId() == currentToken.getTokenId()) {
-                return i;
+                return i + 1;
             }
         }
-        return 0;
+        return 1;
     }
 }

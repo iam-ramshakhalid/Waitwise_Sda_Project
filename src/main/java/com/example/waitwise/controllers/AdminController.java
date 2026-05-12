@@ -454,15 +454,21 @@ public class AdminController {
             long totalMinutes = 0;
             for (Token t : servedTokens) {
                 if (t.getServiceStartTime() != null && t.getStatusUpdateTime() != null) {
-                    totalMinutes += java.time.Duration.between(t.getServiceStartTime(), t.getStatusUpdateTime()).toMinutes();
+                    long diff = java.time.Duration.between(t.getServiceStartTime(), t.getStatusUpdateTime()).toMinutes();
+                    if (diff <= 0) diff = 1; // Minimum 1 minute floor
+                    totalMinutes += diff;
                 }
             }
             
             long avgTime = (totalServed > 0) ? (totalMinutes / totalServed) : 0;
             
+            long noShows = tokenRepository.findAll().stream()
+                    .filter(t -> "Expired".equals(t.getStatus()) && t.getServedBy() != null && t.getServedBy().getUserId() == id)
+                    .count();
+            
             performance.put("tokensServed", totalServed);
             performance.put("avgServiceTime", avgTime);
-            performance.put("noShowCount", 0); // Can be expanded later
+            performance.put("noShowCount", noShows);
             performance.put("message", "Staff performance data retrieved successfully.");
         } else {
             performance.put("tokensServed", 0);

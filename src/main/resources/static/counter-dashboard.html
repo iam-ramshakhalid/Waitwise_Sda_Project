@@ -40,7 +40,7 @@
 
                 <!-- Expanded Citizen Details Card -->
                 <div id="citizenInfoBox" style="width: 100%; max-width: 900px; background: rgba(15, 23, 42, 0.5); padding: 1.2rem 2rem; border-radius: 20px; border: 1px solid rgba(59, 130, 246, 0.2); margin-bottom: 1rem; display: none; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; text-align: left;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; text-align: left;">
                         <div>
                             <label style="display: block; font-size: 0.65rem; color: #94A3B8; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Full Name</label>
                             <div id="citizenNameDisplay" style="font-size: 1.1rem; font-weight: 700; color: #F8FAFC;"></div>
@@ -48,10 +48,6 @@
                         <div>
                             <label style="display: block; font-size: 0.65rem; color: #94A3B8; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">CNIC Number</label>
                             <div id="citizenCnicDisplay" style="font-size: 1rem; color: #60A5FA; font-family: monospace; font-weight: 700;"></div>
-                        </div>
-                        <div>
-                            <label style="display: block; font-size: 0.65rem; color: #94A3B8; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Phone Number</label>
-                            <div id="citizenPhoneDisplay" style="font-size: 1rem; color: #F8FAFC; font-weight: 600;"></div>
                         </div>
                         <div>
                             <label style="display: block; font-size: 0.65rem; color: #94A3B8; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Service Type</label>
@@ -343,7 +339,6 @@
             document.getElementById('citizenInfoBox').style.display = 'block';
             document.getElementById('citizenNameDisplay').textContent = token.citizenName || 'Guest Citizen';
             document.getElementById('citizenCnicDisplay').textContent = token.citizenCnic || 'N/A';
-            document.getElementById('citizenPhoneDisplay').textContent = token.citizenPhone || 'N/A';
             document.getElementById('citizenServiceDisplay').textContent = token.service ? token.service.serviceName : 'General';
             
             const badge = document.getElementById('priorityBadge');
