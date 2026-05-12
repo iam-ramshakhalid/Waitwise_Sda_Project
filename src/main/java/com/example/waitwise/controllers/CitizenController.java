@@ -106,7 +106,13 @@ public class CitizenController {
     public Map<String, Object> cancelToken(@RequestParam int tokenId, @RequestParam String cnic) {
         Token cancelledToken = tokenService.cancelToken(tokenId, cnic);
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Token " + cancelledToken.getTokenNumber() + " has been cancelled successfully.");
+        
+        String message = "Token " + cancelledToken.getTokenNumber() + " has been cancelled successfully.";
+        if ("Golden".equals(cancelledToken.getPriorityType())) {
+            message += " Your payment of Rs. 500 will be refunded to your account within 3-5 business days.";
+        }
+        
+        response.put("message", message);
         response.put("token", cancelledToken);
         return response;
     }

@@ -73,4 +73,15 @@ public class EmailService {
                 "WaitWise Team";
         sendEmail(to, subject, body);
     }
+
+    public void sendRefundNotification(String to, String name, String tokenNumber, double amount) {
+        String subject = "WaitWise - Refund Processed";
+        String body = "Dear " + name + ",\n\n" +
+                "Your Golden Priority token (#" + tokenNumber + ") has been cancelled.\n" +
+                "As per our policy, your payment of Rs. " + amount + " has been initiated for refund to your original payment method.\n\n" +
+                "It may take 3-5 business days to reflect in your account.\n\n" +
+                "Best Regards,\n" +
+                "WaitWise Team";
+        sendEmail(to, subject, body);
+    }
 }

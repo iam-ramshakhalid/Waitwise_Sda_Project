@@ -365,7 +365,7 @@ async function executeCancelToken() {
         }
 
         // Show success toast
-        showToast(data.message || "Token cancelled successfully!");
+        showToast(data.message || "Token cancelled successfully!", "Token Cancelled");
         
         // Refresh dashboard and history
         loadDashboardMetrics();
@@ -397,7 +397,7 @@ async function pollQueueStatus() {
 
                 // Toast logic for the first token or any token <= 3 position
                 if (data.position <= 3 && data.position > 0 && !toastShown) {
-                    showToast(`Only ${data.position} people remain ahead of you. Estimated wait: ${data.estimatedWaitTime} min.`);
+                    showToast(`Only ${data.position} people remain ahead of you. Estimated wait: ${data.estimatedWaitTime} min.`, "Turn Approaching!");
                     toastShown = true;
                 }
                 
@@ -427,10 +427,13 @@ async function pollQueueStatus() {
     }
 }
 
-function showToast(message) {
+function showToast(message, title = "Notification") {
     const toast = document.getElementById('toast');
     if (message) {
         document.getElementById('toastMessage').textContent = message;
+    }
+    if (title) {
+        document.getElementById('toastTitle').textContent = title;
     }
     toast.classList.remove('hidden');
     setTimeout(() => toast.classList.add('hidden'), 5000);

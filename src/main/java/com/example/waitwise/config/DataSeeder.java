@@ -54,8 +54,6 @@ public class DataSeeder {
                 serviceRepository.save(service);
             }
         }
-
-        // Staff accounts (reception, counter) are now created dynamically by admin via the Admin Portal.
-        // The admin account itself is bootstrapped in UserService.login() as a hardcoded fallback.
+       
     }
 }

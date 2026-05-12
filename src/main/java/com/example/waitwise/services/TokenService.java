@@ -103,6 +103,21 @@ public class TokenService {
                 if (!revenues.isEmpty()) {
                     // Delete the most recent matching revenue entry (in case of multiple)
                     revenueRepo.delete(revenues.get(revenues.size() - 1));
+                    
+                    // Send Refund Email
+                    final Token finalToken = token;
+                    new Thread(() -> {
+                        try {
+                            if (finalToken.getCitizen().getEmail() != null) {
+                                emailService.sendRefundNotification(
+                                    finalToken.getCitizen().getEmail(),
+                                    finalToken.getCitizen().getFullName(),
+                                    finalToken.getTokenNumber(),
+                                    500.0 // Hardcoded for now as per Revenue model
+                                );
+                            }
+                        } catch (Exception e) {}
+                    }).start();
                 }
             } catch (Exception e) {
                 // Log but don't fail the cancellation if revenue cleanup fails
