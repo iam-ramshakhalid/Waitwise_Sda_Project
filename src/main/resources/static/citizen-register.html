@@ -108,5 +108,28 @@
     </div>
 
     <script src="js/app.js?v=3.5"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const formFields = ['firstName', 'lastName', 'cnic', 'phoneNumber', 'email', 'dateOfBirth'];
+            
+            // Restore values from sessionStorage
+            formFields.forEach(id => {
+                const element = document.getElementById(id);
+                if (element && sessionStorage.getItem('reg_' + id)) {
+                    element.value = sessionStorage.getItem('reg_' + id);
+                }
+            });
+
+            // Save values to sessionStorage on input
+            formFields.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', (e) => {
+                        sessionStorage.setItem('reg_' + id, e.target.value);
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
